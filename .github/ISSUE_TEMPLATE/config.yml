@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Kyosuke Support
+    url: https://t.me/pantekyks
+    about: Please drop your doubts or queries there for an immediate response.
+  - name: Documentation
+    url: https://randydev.tech/
+    about: Basic documentation for setting up.
