@@ -301,6 +301,7 @@ class CleanServiceSetting(BASE):
     def __repr__(self):
         return "<Chat used clean service ({})>".format(self.chat_id)
 
+
 class RaidMode(BASE):
     __tablename__ = "raid_mode"
     chat_id = Column(String(14), primary_key=True)
@@ -315,6 +316,7 @@ class RaidMode(BASE):
         self.time = time
         self.acttime = acttime
         # self.permanent = permanent
+
 
 Welcome.__table__.create(checkfirst=True)
 WelcomeButtons.__table__.create(checkfirst=True)
@@ -624,11 +626,12 @@ def migrate_chat(old_chat_id, new_chat_id):
 
         SESSION.commit()
 
+
 def getRaidStatus(chat_id):
     try:
         if stat := SESSION.query(RaidMode).get(str(chat_id)):
             return stat.status, stat.time, stat.acttime
-        return False, 21600, 3600 #default
+        return False, 21600, 3600  # default
     finally:
         SESSION.close()
 
@@ -641,16 +644,20 @@ def setRaidStatus(chat_id, status, time=21600, acttime=3600):
         SESSION.add(newObj)
         SESSION.commit()
 
+
 def toggleRaidStatus(chat_id):
     newObj = True
     with RAID_LOCK:
         prevObj = SESSION.query(RaidMode).get(str(chat_id))
         if prevObj:
             newObj = not prevObj.status
-        stat = RaidMode(str(chat_id), newObj, prevObj.time or 21600, prevObj.acttime or 3600)
+        stat = RaidMode(
+            str(chat_id), newObj, prevObj.time or 21600, prevObj.acttime or 3600
+        )
         SESSION.add(stat)
         SESSION.commit()
         return newObj
+
 
 def _ResetRaidOnRestart():
     with RAID_LOCK:
@@ -658,6 +665,7 @@ def _ResetRaidOnRestart():
         for r in raid:
             r.status = False
         SESSION.commit()
+
 
 # it uses a cron job to turn off so if the bot restarts and there is a pending raid disable job then raid will stay on
 _ResetRaidOnRestart()

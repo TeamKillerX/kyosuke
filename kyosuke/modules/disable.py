@@ -12,6 +12,7 @@ from kyosuke.modules.helper_funcs.alternate import send_message, typing_action
 from kyosuke.modules.connection import connected
 from kyosuke.modules.language import gs
 
+
 def get_help(chat):
     return gs(chat, "disable_help")
 
@@ -74,9 +75,9 @@ if is_module_loaded(FILENAME):
                         # disabled, admincmd, user admin
                         if sql.is_command_disabled(chat.id, command[0].lower()):
                             # check if command was disabled
-                            is_disabled = command[
-                                0
-                            ] in ADMIN_CMDS and is_user_admin(update, user.id)
+                            is_disabled = command[0] in ADMIN_CMDS and is_user_admin(
+                                update, user.id
+                            )
                             if not is_disabled:
                                 return None
                             else:

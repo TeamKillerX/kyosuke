@@ -14,7 +14,7 @@ from kyosuke.modules.log_channel import loggable
 from ..modules.helper_funcs.anonymous import user_admin, AdminPerms
 
 
-@rencmd(command=['approve', 'free'], filters=Filters.chat_type.groups)
+@rencmd(command=["approve", "free"], filters=Filters.chat_type.groups)
 @loggable
 @user_admin(AdminPerms.CAN_CHANGE_INFO)
 def approve(update: Update, context: CallbackContext):
@@ -54,12 +54,13 @@ def approve(update: Update, context: CallbackContext):
         f"<b>{html.escape(chat.title)}:</b>\n"
         f"#APPROVED\n"
         f"<b>Admin:</b> {mention_html(user.id, user.first_name)}\n"
-        f"<b>User:</b> {mention_html(member.user.id, member.user.first_name)}")
+        f"<b>User:</b> {mention_html(member.user.id, member.user.first_name)}"
+    )
 
     return log_message
 
 
-@rencmd(command=['unapprove', 'unfree'], filters=Filters.chat_type.groups)
+@rencmd(command=["unapprove", "unfree"], filters=Filters.chat_type.groups)
 @loggable
 @user_admin(AdminPerms.CAN_CHANGE_INFO)
 def disapprove(update: Update, context: CallbackContext):
@@ -86,17 +87,19 @@ def disapprove(update: Update, context: CallbackContext):
         return ""
     sql.disapprove(message.chat_id, user_id)
     message.reply_text(
-        f"{member.user['first_name']} is no longer approved in {chat_title}.")
+        f"{member.user['first_name']} is no longer approved in {chat_title}."
+    )
     log_message = (
         f"<b>{html.escape(chat.title)}:</b>\n"
         f"#UNAPPROVED\n"
         f"<b>Admin:</b> {mention_html(user.id, user.first_name)}\n"
-        f"<b>User:</b> {mention_html(member.user.id, member.user.first_name)}")
+        f"<b>User:</b> {mention_html(member.user.id, member.user.first_name)}"
+    )
 
     return log_message
 
 
-@rencmd(command='approved', filters=Filters.chat_type.groups)
+@rencmd(command="approved", filters=Filters.chat_type.groups)
 @user_admin(AdminPerms.CAN_CHANGE_INFO)
 def approved(update: Update, _: CallbackContext):
     message = update.effective_message
@@ -114,7 +117,7 @@ def approved(update: Update, _: CallbackContext):
         message.reply_text(msg, parse_mode=ParseMode.MARKDOWN)
 
 
-@rencmd(command='approval', filters=Filters.chat_type.groups)
+@rencmd(command="approval", filters=Filters.chat_type.groups)
 @user_admin(AdminPerms.CAN_CHANGE_INFO)
 def approval(update, context):
     message = update.effective_message
@@ -138,26 +141,30 @@ def approval(update, context):
         )
 
 
-@rencmd(command='unapproveall', filters=Filters.chat_type.groups)
+@rencmd(command="unapproveall", filters=Filters.chat_type.groups)
 def unapproveall(update: Update, _: CallbackContext):
     chat = update.effective_chat
     user = update.effective_user
     member = chat.get_member(user.id)
     if member.status != "creator" and user.id not in SUDO_USERS:
         update.effective_message.reply_text(
-            "Only the chat owner can unapprove all users at once.")
+            "Only the chat owner can unapprove all users at once."
+        )
     else:
-        buttons = InlineKeyboardMarkup([
+        buttons = InlineKeyboardMarkup(
             [
-                InlineKeyboardButton(
-                    text="Unapprove all users",
-                    callback_data="unapproveall_user")
-            ],
-            [
-                InlineKeyboardButton(
-                    text="Cancel", callback_data="unapproveall_cancel")
-            ],
-        ])
+                [
+                    InlineKeyboardButton(
+                        text="Unapprove all users", callback_data="unapproveall_user"
+                    )
+                ],
+                [
+                    InlineKeyboardButton(
+                        text="Cancel", callback_data="unapproveall_cancel"
+                    )
+                ],
+            ]
+        )
         update.effective_message.reply_text(
             f"Are you sure you would like to unapprove ALL users in {chat.title}? This action cannot be undone.",
             reply_markup=buttons,
@@ -185,8 +192,7 @@ def unapproveall_btn(update: Update, _: CallbackContext):
             query.answer("You need to be admin to do this.")
     elif query.data == "unapproveall_cancel":
         if member.status == "creator" or query.from_user.id in SUDO_USERS:
-            message.edit_text(
-                "Removing of all approved users has been cancelled.")
+            message.edit_text("Removing of all approved users has been cancelled.")
             return ""
         if member.status == "administrator":
             query.answer("Only owner of the chat can do this.")

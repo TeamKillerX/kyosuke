@@ -15,9 +15,11 @@ if is_module_loaded(FILENAME):
     from telegram.utils.helpers import escape_markdown
 
     from kyosuke import GBAN_LOGS, log, dispatcher
-    from kyosuke.modules.helper_funcs.chat_status import user_admin as u_admin, is_user_admin
+    from kyosuke.modules.helper_funcs.chat_status import (
+        user_admin as u_admin,
+        is_user_admin,
+    )
     from kyosuke.modules.sql import log_channel_sql as sql
-
 
     def loggable(func):
         @wraps(func)
@@ -34,10 +36,10 @@ if is_module_loaded(FILENAME):
                         if message.chat.username:
                             result += f'\n<b>Link:</b> <a href="https://t.me/{chat.username}/{message.message_id}">click here</a>'
                         else:
-                            cid = str(chat.id).replace("-100", '')
+                            cid = str(chat.id).replace("-100", "")
                             result += f'\n<b>Link:</b> <a href="https://t.me/c/{cid}/{message.message_id}">click here</a>'
                 except AttributeError:
-                    result += '\n<b>Link:</b> No link for manual actions.' # or just without the whole line
+                    result += "\n<b>Link:</b> No link for manual actions."  # or just without the whole line
                 log_chat = sql.get_chat_log_channel(chat.id)
                 if log_chat:
                     send_log(context, log_chat, chat.id, result)
@@ -45,7 +47,6 @@ if is_module_loaded(FILENAME):
             return result
 
         return log_action
-
 
     def gloggable(func):
         @wraps(func)
@@ -70,9 +71,8 @@ if is_module_loaded(FILENAME):
 
         return glog_action
 
-
     def send_log(
-            context: CallbackContext, log_chat_id: str, orig_chat_id: str, result: str
+        context: CallbackContext, log_chat_id: str, orig_chat_id: str, result: str
     ):
         bot = context.bot
         try:
@@ -99,8 +99,7 @@ if is_module_loaded(FILENAME):
                     + "\n\nFormatting has been disabled due to an unexpected error.",
                 )
 
-
-    @rencmd(command='logchannel')
+    @rencmd(command="logchannel")
     @u_admin
     def logging(update: Update, context: CallbackContext):
         bot = context.bot
@@ -119,8 +118,7 @@ if is_module_loaded(FILENAME):
         else:
             message.reply_text("No log channel has been set for this group!")
 
-
-    @rencmd(command='setlog')
+    @rencmd(command="setlog")
     @user_admin(AdminPerms.CAN_CHANGE_INFO)
     def setlog(update: Update, context: CallbackContext):
         bot = context.bot
@@ -136,9 +134,9 @@ if is_module_loaded(FILENAME):
             try:
                 message.delete()
             except BadRequest as excp:
-                if excp.message != 'Message to delete not found':
+                if excp.message != "Message to delete not found":
                     log.exception(
-                        'Error deleting message in log channel. Should work anyway though.'
+                        "Error deleting message in log channel. Should work anyway though."
                     )
 
             try:
@@ -162,8 +160,7 @@ if is_module_loaded(FILENAME):
                 " - forward the /setlog to the group\n"
             )
 
-
-    @rencmd(command='unsetlog')
+    @rencmd(command="unsetlog")
     @user_admin(AdminPerms.CAN_CHANGE_INFO)
     def unsetlog(update: Update, context: CallbackContext):
         bot = context.bot
@@ -180,14 +177,11 @@ if is_module_loaded(FILENAME):
         else:
             message.reply_text("No log channel has been set yet!")
 
-
     def __stats__():
         return f"• {sql.num_logchannels()} log channels set."
 
-
     def __migrate__(old_chat_id, new_chat_id):
         sql.migrate_chat(old_chat_id, new_chat_id)
-
 
     def __chat_settings__(chat_id, user_id):
         log_channel = sql.get_chat_log_channel(chat_id)
@@ -201,7 +195,6 @@ else:
     def loggable(func):
         return func
 
-
     def gloggable(func):
         return func
 
@@ -212,20 +205,20 @@ def log_settings(update: Update, _: CallbackContext):
     chat = update.effective_chat
     chat_set = sql.get_chat_setting(chat_id=chat.id)
     if not chat_set:
-        sql.set_chat_setting(setting=sql.LogChannelSettings(chat.id, True, True, True, True, True))
+        sql.set_chat_setting(
+            setting=sql.LogChannelSettings(chat.id, True, True, True, True, True)
+        )
     btn = InlineKeyboardMarkup(
         [
             [
                 InlineKeyboardButton(text="Warn", callback_data="log_tog_warn"),
-                InlineKeyboardButton(text="Action", callback_data="log_tog_act")
+                InlineKeyboardButton(text="Action", callback_data="log_tog_act"),
             ],
             [
                 InlineKeyboardButton(text="Join", callback_data="log_tog_join"),
-                InlineKeyboardButton(text="Leave", callback_data="log_tog_leave")
+                InlineKeyboardButton(text="Leave", callback_data="log_tog_leave"),
             ],
-            [
-                InlineKeyboardButton(text="Report", callback_data="log_tog_rep")
-            ]
+            [InlineKeyboardButton(text="Report", callback_data="log_tog_rep")],
         ]
     )
     msg = update.effective_message
@@ -246,7 +239,9 @@ def log_setting_callback(update: Update, context: CallbackContext):
     setting = cb.data.replace("log_tog_", "")
     chat_set = sql.get_chat_setting(chat_id=chat.id)
     if not chat_set:
-        sql.set_chat_setting(setting=sql.LogChannelSettings(chat.id, True, True, True, True, True))
+        sql.set_chat_setting(
+            setting=sql.LogChannelSettings(chat.id, True, True, True, True, True)
+        )
 
     t = sql.get_chat_setting(chat.id)
     if setting == "warn":

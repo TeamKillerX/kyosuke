@@ -12,6 +12,7 @@ import kyosuke.modules.sql.connection_sql as sql
 from .. import dispatcher, SUDO_USERS, DEV_USERS
 from .helper_funcs import admin_status
 from .helper_funcs.alternate import send_message, typing_action
+
 user_admin_check = admin_status.user_admin_check
 AdminPerms = admin_status.AdminPerms
 
@@ -63,6 +64,7 @@ def allow_connections(update, context):
             update.effective_message, "This command is for group only. Not in PM!"
         )
 
+
 @typing_action
 def connection_chat(update, context):
 
@@ -85,6 +87,8 @@ def connection_chat(update, context):
     else:
         message = "You are currently not connected in any group.\n"
     send_message(update.effective_message, message, parse_mode="markdown")
+
+
 @typing_action
 def connect_chat(update, context):  # sourcery no-metrics
 
@@ -243,6 +247,8 @@ def connect_chat(update, context):  # sourcery no-metrics
             send_message(
                 update.effective_message, "Connection to this chat is not allowed!"
             )
+
+
 def disconnect_chat(update, context):
 
     if update.effective_chat.type == "private":
@@ -310,6 +316,7 @@ CONN_HELP = """
  • Enable and Disable commands in chat.
  • Export and Imports of chat backup.
  • More in future!"""
+
 
 def help_connect_chat(update, context):
 
@@ -379,8 +386,11 @@ def connect_button(update, context):
 
 
 from .language import gs
+
+
 def get_help(chat):
     return gs(chat, "connections_help")
+
 
 CONNECT_CHAT_HANDLER = CommandHandler("connect", connect_chat, pass_args=True)
 CONNECTION_CHAT_HANDLER = CommandHandler("connection", connection_chat, run_async=True)

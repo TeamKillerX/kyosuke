@@ -39,23 +39,23 @@ LOCK_TYPES = {
     "url": Filters.entity(MessageEntity.URL)
     | Filters.caption_entity(MessageEntity.URL),
     "bots": Filters.status_update.new_chat_members,
-    "forward": Filters.forwarded & ~ Filters.is_automatic_forward,
+    "forward": Filters.forwarded & ~Filters.is_automatic_forward,
     "game": Filters.game,
     "location": Filters.location,
     "egame": Filters.dice,
     "rtl": "rtl",
     "button": "button",
     "inline": "inline",
-    "apk" : Filters.document.mime_type("application/vnd.android.package-archive"),
-    "doc" : Filters.document.mime_type("application/msword"),
-    "exe" : Filters.document.mime_type("application/x-ms-dos-executable"),
-    "gif" : Filters.document.mime_type("video/mp4"),
-    "jpg" : Filters.document.mime_type("image/jpeg"),
-    "mp3" : Filters.document.mime_type("audio/mpeg"),
-    "pdf" : Filters.document.mime_type("application/pdf"),
-    "txt" : Filters.document.mime_type("text/plain"),
-    "xml" : Filters.document.mime_type("application/xml"),
-    "zip" : Filters.document.mime_type("application/zip"),
+    "apk": Filters.document.mime_type("application/vnd.android.package-archive"),
+    "doc": Filters.document.mime_type("application/msword"),
+    "exe": Filters.document.mime_type("application/x-ms-dos-executable"),
+    "gif": Filters.document.mime_type("video/mp4"),
+    "jpg": Filters.document.mime_type("image/jpeg"),
+    "mp3": Filters.document.mime_type("audio/mpeg"),
+    "pdf": Filters.document.mime_type("application/pdf"),
+    "txt": Filters.document.mime_type("text/plain"),
+    "xml": Filters.document.mime_type("application/xml"),
+    "zip": Filters.document.mime_type("application/zip"),
 }
 
 LOCK_CHAT_RESTRICTION = {
@@ -141,17 +141,26 @@ def unrestr_members(
         except TelegramError:
             pass
 
-@rencmd(command='locktypes')
-def locktypes(update, context):
-    new_lock = InlineKeyboardMarkup([[InlineKeyboardButton("Support", url=f"https://t.me/pantekyks")]])
-    update.effective_message.reply_text(
-        "\n • ".join(["Locks available: "] + sorted(list(LOCK_TYPES) + list(LOCK_CHAT_RESTRICTION))), reply_markup=new_lock)
 
-@rencmd(command='lock', pass_args=True)
+@rencmd(command="locktypes")
+def locktypes(update, context):
+    new_lock = InlineKeyboardMarkup(
+        [[InlineKeyboardButton("Support", url=f"https://t.me/pantekyks")]]
+    )
+    update.effective_message.reply_text(
+        "\n • ".join(
+            ["Locks available: "]
+            + sorted(list(LOCK_TYPES) + list(LOCK_CHAT_RESTRICTION))
+        ),
+        reply_markup=new_lock,
+    )
+
+
+@rencmd(command="lock", pass_args=True)
 @connection_status
 @typing_action
 @bot_admin_check()
-@user_admin_check(AdminPerms.CAN_CHANGE_INFO, allow_mods = True)
+@user_admin_check(AdminPerms.CAN_CHANGE_INFO, allow_mods=True)
 @loggable
 def lock(update, context) -> str:  # sourcery no-metrics
     args = context.args
@@ -162,7 +171,7 @@ def lock(update, context) -> str:  # sourcery no-metrics
             ltype = args[0].lower()
             if ltype == "anonchannel":
                 text = "`anonchannel` is not a lock, please use `/antichannel on` to restrict channels"
-                send_message(update.effective_message, text, parse_mode = "markdown")
+                send_message(update.effective_message, text, parse_mode="markdown")
             elif ltype in LOCK_TYPES:
 
                 text = "Locked {} for non-admins!".format(ltype)
@@ -219,7 +228,8 @@ def lock(update, context) -> str:  # sourcery no-metrics
 
     return ""
 
-@rencmd(command='unlock', pass_args=True)
+
+@rencmd(command="unlock", pass_args=True)
 @bot_admin_check()
 @typing_action
 @user_admin_check()
@@ -284,6 +294,7 @@ def unlock(update, context) -> str:  # sourcery no-metrics
 
     return ""
 
+
 @renmsg((Filters.all & Filters.chat_type.groups), group=PERM_GROUP)
 @user_not_admin_check
 def del_lockables(update, context):  # sourcery no-metrics
@@ -294,9 +305,11 @@ def del_lockables(update, context):  # sourcery no-metrics
         return
     for lockable, filter in LOCK_TYPES.items():
         if lockable == "rtl":
-            if sql.is_locked(chat.id, lockable) and bot_is_admin(chat, AdminPerms.CAN_DELETE_MESSAGES):
+            if sql.is_locked(chat.id, lockable) and bot_is_admin(
+                chat, AdminPerms.CAN_DELETE_MESSAGES
+            ):
                 if message.caption:
-                    check = ad.detect_alphabet(u"{}".format(message.caption))
+                    check = ad.detect_alphabet("{}".format(message.caption))
                     if "ARABIC" in check:
                         try:
                             # replyyy = "This action is restricted to admins only!"
@@ -307,7 +320,7 @@ def del_lockables(update, context):  # sourcery no-metrics
                                 log.exception("ERROR in lockables")
                         break
                 if message.text:
-                    check = ad.detect_alphabet(u"{}".format(message.text))
+                    check = ad.detect_alphabet("{}".format(message.text))
                     if "ARABIC" in check:
                         try:
                             message.delete()
@@ -339,7 +352,7 @@ def del_lockables(update, context):  # sourcery no-metrics
                 and message
                 and message.via_bot
             ):
-                try:               
+                try:
                     message.delete()
                 except BadRequest as excp:
                     if excp.message != "Message to delete not found":
@@ -370,7 +383,7 @@ def del_lockables(update, context):  # sourcery no-metrics
                         )
                         break
             else:
-                try:                 
+                try:
                     message.delete()
                 except BadRequest as excp:
                     if excp.message != "Message to delete not found":
@@ -433,7 +446,8 @@ def build_lock_message(chat_id):
         res += "\n • {}".format(x)
     return res
 
-@rencmd(command='locks')
+
+@rencmd(command="locks")
 @connection_status
 @user_admin_check(AdminPerms.CAN_CHANGE_INFO, allow_mods=True)
 @typing_action
@@ -441,7 +455,6 @@ def list_locks(update, _):
     chat = update.effective_chat  # type: Optional[Chat]
 
     res = build_lock_message(chat.id)
-
 
     send_message(update.effective_message, res, parse_mode=ParseMode.MARKDOWN)
 
@@ -482,7 +495,9 @@ def __chat_settings__(chat_id, user_id):
 
 from .language import gs
 
+
 def get_help(chat):
     return gs(chat, "locks_help")
+
 
 __mod_name__ = "Locks"

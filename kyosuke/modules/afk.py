@@ -9,19 +9,20 @@ from telegram.ext import CallbackContext, Filters, MessageHandler
 
 from kyosuke import dispatcher, REDIS
 from kyosuke.modules.disable import (
-     DisableAbleCommandHandler,
-     DisableAbleMessageHandler,
+    DisableAbleCommandHandler,
+    DisableAbleMessageHandler,
 )
 from kyosuke.modules.helper_funcs.readable_time import get_readable_time
 from kyosuke.database.redis.afk_redis import (
-     start_afk,
-     end_afk,
-     is_user_afk,
-     afk_reason,
+    start_afk,
+    end_afk,
+    is_user_afk,
+    afk_reason,
 )
 from kyosuke.modules.users import get_user_id
 from .helper_funcs.decorators import rencmd, renmsg
 from .helper_funcs.filters import CustomFilters
+
 
 @rencmd(command="afk", pass_args=True)
 @renmsg(Filters.regex("(?i)^brb"), group=10)
@@ -42,6 +43,7 @@ def afk(update: Update, _: CallbackContext):
         message.reply_text(
             f"<code>{fname}</code> is now AFK!", parse_mode=ParseMode.HTML
         )
+
 
 @renmsg((Filters.all & Filters.chat_type.groups), group=7)
 def no_longer_afk(update: Update, _: CallbackContext):
@@ -72,6 +74,7 @@ def no_longer_afk(update: Update, _: CallbackContext):
             )
         except BadRequest:
             return
+
 
 @renmsg((Filters.all & Filters.chat_type.groups), group=8)
 def reply_afk(update: Update, context: CallbackContext):
@@ -154,8 +157,10 @@ def __gdpr__(user_id):
 
 from .language import gs
 
+
 def get_help(chat):
     return gs(chat, "afk_help")
+
 
 __mod_name__ = "AFK"
 __command_list__ = ["afk"]

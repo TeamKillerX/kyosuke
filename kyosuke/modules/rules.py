@@ -57,13 +57,13 @@ def send_rules(update, chat_id, from_pm=False):
         )
     elif rules:
         btn = InlineKeyboardMarkup(
+            [
                 [
-                    [
-                        InlineKeyboardButton(
-                            text="Rules", url=f"t.me/{bot.username}?start={chat_id}"
-                        )
-                    ]
+                    InlineKeyboardButton(
+                        text="Rules", url=f"t.me/{bot.username}?start={chat_id}"
+                    )
                 ]
+            ]
         )
         txt = "Please click the button below to see the rules."
         if not message.reply_to_message:

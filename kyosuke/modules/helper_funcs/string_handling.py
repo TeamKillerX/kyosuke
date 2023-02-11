@@ -26,7 +26,7 @@ MATCH_MD = re.compile(
 
 MATCH_MD_v2 = re.compile(
     r"(?<!\\)(\[.*?\])(\(.*?\))|"
-    r"(?P<esc>[\_\-~`>#=!\|\*\[\]\(\)\+\{\}\.\\])" # https://core.telegram.org/bots/api#markdownv2-style
+    r"(?P<esc>[\_\-~`>#=!\|\*\[\]\(\)\+\{\}\.\\])"  # https://core.telegram.org/bots/api#markdownv2-style
 )
 
 # regex to find []() links -> hyperlinks/buttons
@@ -96,7 +96,16 @@ def markdown_parser_v2(
         end = ent.offset + offset + ent.length - 1  # end of entity
 
         # we only care about code, url, text links
-        if ent.type in ("code", "url", "text_link", "bold", "italic", "underline", "strikethrough", "spoiler"):
+        if ent.type in (
+            "code",
+            "url",
+            "text_link",
+            "bold",
+            "italic",
+            "underline",
+            "strikethrough",
+            "spoiler",
+        ):
             # count emoji to switch counter
             count = _calc_emoji_offset(txt[:start])
             start -= count
@@ -104,24 +113,39 @@ def markdown_parser_v2(
 
             if ent.type == "url":
                 for match in LINK_REGEX_v2.finditer(txt):
-                    if match.start(2) <= start and end <= match.end(2) and not match.group(2).startswith("buttonurl"):
+                    if (
+                        match.start(2) <= start
+                        and end <= match.end(2)
+                        and not match.group(2).startswith("buttonurl")
+                    ):
                         print(match.group(2))
                         mt = match.group(1).center(count)
-                        res += _selective_escape_v2(txt[prev:start - (len(mt) + 3)] + '[{}]({})'.format(_selective_escape_v2(match.group(1)), match.group(2)))
+                        res += _selective_escape_v2(
+                            txt[prev : start - (len(mt) + 3)]
+                            + "[{}]({})".format(
+                                _selective_escape_v2(match.group(1)), match.group(2)
+                            )
+                        )
                         print(res)
-                        end +=1
+                        end += 1
                         break
                     continue
                 else:
-                    if txt[start - 10:start] or txt[start - 12:start] in ['buttonurl:', 'buttonurl://']:
+                    if txt[start - 10 : start] or txt[start - 12 : start] in [
+                        "buttonurl:",
+                        "buttonurl://",
+                    ]:
                         continue
                     else:
-                        if txt[start - 10:start] or txt[start - 12:start] in ['buttonurl:', 'buttonurl://']:
+                        if txt[start - 10 : start] or txt[start - 12 : start] in [
+                            "buttonurl:",
+                            "buttonurl://",
+                        ]:
                             continue
                         # TODO: investigate possible offset bug when lots of emoji are present
-                        res += _selective_escape_v2(txt[prev:start] or "") + escape_markdown(
-                            ent_text, version=2
-                        )
+                        res += _selective_escape_v2(
+                            txt[prev:start] or ""
+                        ) + escape_markdown(ent_text, version=2)
 
             # code handling
             elif ent.type == "code":
@@ -151,7 +175,7 @@ def markdown_parser_v2(
             elif ent.type == "text_link":
                 res += _selective_escape_v2(txt[prev:start]) + "[{}]({})".format(
                     _selective_escape_v2(ent_text), ent.url
-                    )
+                )
 
             end += 1
 
@@ -194,8 +218,13 @@ def button_markdown_parser_v2(
 
     return note_data, buttons
 
+
 def reply_button_parser_v2(
-    txt: str, entities: Dict[MessageEntity, str] = None, offset: int = 0, replymarkup: InlineKeyboardMarkup = None) -> (str, List):
+    txt: str,
+    entities: Dict[MessageEntity, str] = None,
+    offset: int = 0,
+    replymarkup: InlineKeyboardMarkup = None,
+) -> (str, List):
     markdown_note = markdown_parser_v2(txt, entities, offset)
     buttons = []
     prev = 0
@@ -228,6 +257,7 @@ def reply_button_parser_v2(
     note_data += markdown_note[prev:]
     return note_data, buttons
 
+
 def _selective_escape(to_parse: str) -> str:
     """
     Escape all invalid markdown
@@ -243,6 +273,7 @@ def _selective_escape(to_parse: str) -> str:
             )
             offset += 1
     return to_parse
+
 
 def markdown_parser(
     txt: str, entities: Dict[MessageEntity, str] = None, offset: int = 0
@@ -315,6 +346,7 @@ def markdown_parser(
     res += _selective_escape(txt[prev:])  # add the rest of the text
     return res
 
+
 def button_markdown_parser(
     txt: str, entities: Dict[MessageEntity, str] = None, offset: int = 0
 ) -> (str, List):
@@ -344,6 +376,7 @@ def button_markdown_parser(
         note_data += markdown_note[prev:]
 
     return note_data, buttons
+
 
 def escape_invalid_curly_brackets(text: str, valids: List[str]) -> str:
     new_text = ""
