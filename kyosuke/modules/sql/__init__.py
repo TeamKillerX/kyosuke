@@ -7,6 +7,7 @@ from kyosuke import DB_URI, KInit, log
 if DB_URI and DB_URI.startswith("postgres://"):
     DB_URI = DB_URI.replace("postgres://", "postgresql://", 1)
 
+
 def start() -> scoped_session:
     engine = create_engine(DB_URI, client_encoding="utf8", echo=KInit.DEBUG)
     log.info("[PostgreSQL] Connecting to database......")
@@ -19,7 +20,7 @@ BASE = declarative_base()
 try:
     SESSION: scoped_session = start()
 except Exception as e:
-    log.exception(f'[PostgreSQL] Failed to connect due to {e}')
+    log.exception(f"[PostgreSQL] Failed to connect due to {e}")
     exit()
-   
+
 log.info("[PostgreSQL] Connection successful, session started.")

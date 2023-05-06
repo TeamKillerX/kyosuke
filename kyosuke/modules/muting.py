@@ -12,9 +12,24 @@ from kyosuke.modules.helper_funcs.chat_status import (
 from kyosuke.modules.helper_funcs.extraction import extract_user_and_text
 from kyosuke.modules.helper_funcs.string_handling import extract_time
 from kyosuke.modules.log_channel import loggable
-from telegram import Bot, Chat, ChatPermissions, ParseMode, Update, User, InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery
+from telegram import (
+    Bot,
+    Chat,
+    ChatPermissions,
+    ParseMode,
+    Update,
+    User,
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    CallbackQuery,
+)
 from telegram.error import BadRequest
-from telegram.ext import CallbackContext, CommandHandler, run_async, CallbackQueryHandler
+from telegram.ext import (
+    CallbackContext,
+    CommandHandler,
+    run_async,
+    CallbackQueryHandler,
+)
 from telegram.utils.helpers import mention_html
 from kyosuke.modules.language import gs
 from kyosuke.modules.helper_funcs.decorators import rencmd
@@ -29,7 +44,7 @@ def check_user(user_id: int, bot: Bot, update: Update) -> Optional[str]:
     try:
         member = update.effective_chat.get_member(user_id)
     except BadRequest as excp:
-        if excp.message == 'User not found':
+        if excp.message == "User not found":
             return "I can't seem to find this user"
         else:
             raise
@@ -42,7 +57,7 @@ def check_user(user_id: int, bot: Bot, update: Update) -> Optional[str]:
     return None
 
 
-@rencmd(command='mute')
+@rencmd(command="mute")
 @connection_status
 @bot_admin
 @can_restrict
@@ -82,22 +97,29 @@ def mute(update: Update, context: CallbackContext) -> str:
         bot.sendMessage(
             chat.id,
             "{} was muted by {} in <b>{}</b>\n<b>Id</b>: [<code>{}</code>]\n<b>Reason</b>: <code>{}</code>".format(
-                mention_html(member.user.id, member.user.first_name), mention_html(user.id, user.first_name),
-                message.chat.title, member.user.id, reason
+                mention_html(member.user.id, member.user.first_name),
+                mention_html(user.id, user.first_name),
+                message.chat.title,
+                member.user.id,
+                reason,
             ),
             reply_markup=InlineKeyboardMarkup(
                 [
                     [
                         InlineKeyboardButton(
-                            text="How to use ?", url=f"https://t.me/KillerXSupport/12958"
+                            text="How to use ?",
+                            url=f"https://t.me/KillerXSupport/12958",
                         ),
                     ],
                     [
                         InlineKeyboardButton(
-                        "📝 Read the rules", url="t.me/{}?start={}".format(dispatcher.bot.username, chat.id)
+                            "📝 Read the rules",
+                            url="t.me/{}?start={}".format(
+                                dispatcher.bot.username, chat.id
+                            ),
                         ),
-                    ]
-                 ]
+                    ],
+                ]
             ),
             parse_mode=ParseMode.HTML,
         )
@@ -109,7 +131,7 @@ def mute(update: Update, context: CallbackContext) -> str:
     return ""
 
 
-@rencmd(command='unmute')
+@rencmd(command="unmute")
 @connection_status
 @bot_admin
 @can_restrict
@@ -137,10 +159,10 @@ def unmute(update: Update, context: CallbackContext) -> str:
         )
 
     elif (
-            member.can_send_messages
-            and member.can_send_media_messages
-            and member.can_send_other_messages
-            and member.can_add_web_page_previews
+        member.can_send_messages
+        and member.can_send_media_messages
+        and member.can_send_other_messages
+        and member.can_add_web_page_previews
     ):
         message.reply_text("This user already has the right to speak.")
     else:
@@ -161,8 +183,11 @@ def unmute(update: Update, context: CallbackContext) -> str:
         bot.sendMessage(
             chat.id,
             "{} was unmuted by {} in <b>{}</b>\n<b>Id</b>: [<code>{}</code>]\n<b>Reason</b>: <code>{}</code>".format(
-                mention_html(member.user.id, member.user.first_name), mention_html(user.id, user.first_name),
-                message.chat.title, member.user.id, reason
+                mention_html(member.user.id, member.user.first_name),
+                mention_html(user.id, user.first_name),
+                message.chat.title,
+                member.user.id,
+                reason,
             ),
             parse_mode=ParseMode.HTML,
         )
@@ -176,7 +201,7 @@ def unmute(update: Update, context: CallbackContext) -> str:
     return ""
 
 
-@rencmd(command=['tmute', 'tempmute'])
+@rencmd(command=["tmute", "tempmute"])
 @connection_status
 @bot_admin
 @can_restrict
@@ -256,5 +281,6 @@ def temp_mute(update: Update, context: CallbackContext) -> str:
 
 def get_help(chat):
     return gs(chat, "muting_help")
+
 
 __mod_name__ = "Muting"

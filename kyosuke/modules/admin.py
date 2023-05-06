@@ -1,7 +1,7 @@
 import html
 import os
 import json
-import requests 
+import requests
 from telegram import ParseMode, Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.error import BadRequest, Unauthorized
 from telegram.ext import CallbackContext, CommandHandler, Filters, run_async
@@ -19,7 +19,10 @@ from kyosuke.modules.helper_funcs.chat_status import (
     ADMIN_CACHE,
 )
 
-from kyosuke.modules.helper_funcs.admin_rights import user_can_changeinfo, user_can_promote
+from kyosuke.modules.helper_funcs.admin_rights import (
+    user_can_changeinfo,
+    user_can_promote,
+)
 from kyosuke.modules.helper_funcs.extraction import (
     extract_user,
     extract_user_and_text,
@@ -29,6 +32,7 @@ from kyosuke.modules.log_channel import loggable
 from kyosuke.modules.helper_funcs.alternate import send_message
 from ..modules.helper_funcs.anonymous import user_admin, AdminPerms
 from kyosuke.modules.helper_funcs.decorators import rencmd
+
 
 @rencmd(command="setsticker", pass_args=True)
 @bot_admin
@@ -57,8 +61,9 @@ def set_sticker(update: Update, context: CallbackContext):
             msg.reply_text(f"Error! {excp.message}.")
     else:
         msg.reply_text("You need to reply to some sticker to set chat sticker set!")
-       
-@rencmd(command="setgpic", pass_args=True)    
+
+
+@rencmd(command="setgpic", pass_args=True)
 @bot_admin
 def setchatpic(update: Update, context: CallbackContext):
     chat = update.effective_chat
@@ -93,7 +98,8 @@ def setchatpic(update: Update, context: CallbackContext):
     else:
         msg.reply_text("Reply to some photo or file to set new chat pic!")
 
-@rencmd(command="delgpic", pass_args=True)        
+
+@rencmd(command="delgpic", pass_args=True)
 @bot_admin
 def rmchatpic(update: Update, context: CallbackContext):
     chat = update.effective_chat
@@ -110,7 +116,8 @@ def rmchatpic(update: Update, context: CallbackContext):
         msg.reply_text(f"Error! {excp.message}.")
         return
 
-@rencmd(command="setdesc", pass_args=True)    
+
+@rencmd(command="setdesc", pass_args=True)
 @bot_admin
 def set_desc(update: Update, context: CallbackContext):
     msg = update.effective_message
@@ -131,8 +138,9 @@ def set_desc(update: Update, context: CallbackContext):
         context.bot.set_chat_description(chat.id, desc)
         msg.reply_text(f"Successfully updated chat description in {chat.title}!")
     except BadRequest as excp:
-        msg.reply_text(f"Error! {excp.message}.")        
-        
+        msg.reply_text(f"Error! {excp.message}.")
+
+
 @rencmd(command="setgtitle", pass_args=True)
 @bot_admin
 def setchat_title(update: Update, context: CallbackContext):
@@ -159,8 +167,9 @@ def setchat_title(update: Update, context: CallbackContext):
     except BadRequest as excp:
         msg.reply_text(f"Error! {excp.message}.")
         return
-        
-@rencmd(command="promote", pass_args=True)        
+
+
+@rencmd(command="promote", pass_args=True)
 @connection_status
 @bot_admin
 @can_promote
@@ -184,7 +193,7 @@ def promote(update: Update, context: CallbackContext) -> str:
     except:
         return
 
-    if user_member.status in ('administrator', 'creator'):
+    if user_member.status in ("administrator", "creator"):
         message.reply_text("How am I meant to promote someone that's already an admin?")
         return
 
@@ -231,6 +240,7 @@ def promote(update: Update, context: CallbackContext) -> str:
 
     return log_message
 
+
 @rencmd(command="lowpromote", pass_args=True)
 @connection_status
 @bot_admin
@@ -254,7 +264,7 @@ def lowpromote(update: Update, context: CallbackContext) -> str:
     except:
         return
 
-    if user_member.status in ('administrator', 'creator'):
+    if user_member.status in ("administrator", "creator"):
         message.reply_text("How am I meant to promote someone that's already an admin?")
         return
 
@@ -295,6 +305,7 @@ def lowpromote(update: Update, context: CallbackContext) -> str:
 
     return log_message
 
+
 @rencmd(command="fullpromote", pass_args=True)
 @connection_status
 @bot_admin
@@ -309,7 +320,7 @@ def fullpromote(update: Update, context: CallbackContext) -> str:
     chat = update.effective_chat
     user = update.effective_user
 
-    #promoter = chat.get_member(user.id)
+    # promoter = chat.get_member(user.id)
     """
     if (
         not (promoter.can_promote_members or promoter.status == "creator")
@@ -331,7 +342,7 @@ def fullpromote(update: Update, context: CallbackContext) -> str:
     except:
         return
 
-    if user_member.status in ('administrator', 'creator'):
+    if user_member.status in ("administrator", "creator"):
         message.reply_text("How am I meant to promote someone that's already an admin?")
         return
 
@@ -363,10 +374,15 @@ def fullpromote(update: Update, context: CallbackContext) -> str:
             message.reply_text("An error occured while promoting.")
         return
 
-    keyboard = InlineKeyboardMarkup([[
-        InlineKeyboardButton(
-            "Demote", callback_data="demote_({})".format(user_member.user.id))
-    ]])
+    keyboard = InlineKeyboardMarkup(
+        [
+            [
+                InlineKeyboardButton(
+                    "Demote", callback_data="demote_({})".format(user_member.user.id)
+                )
+            ]
+        ]
+    )
 
     bot.sendMessage(
         chat.id,
@@ -382,6 +398,7 @@ def fullpromote(update: Update, context: CallbackContext) -> str:
     )
 
     return log_message
+
 
 @rencmd(command="demote", pass_args=True)
 @connection_status
@@ -455,6 +472,7 @@ def demote(update: Update, context: CallbackContext) -> str:
         )
         return
 
+
 @rencmd(command="reload", pass_args=True)
 @bot_admin
 def refresh_admin(update, _):
@@ -464,6 +482,7 @@ def refresh_admin(update, _):
         pass
 
     update.effective_message.reply_text("✅ Admins cache refreshed!")
+
 
 @rencmd(command="title", pass_args=True)
 @connection_status
@@ -529,6 +548,7 @@ def set_title(update: Update, context: CallbackContext):
         parse_mode=ParseMode.HTML,
     )
 
+
 @rencmd(command="pin", pass_args=True)
 @bot_admin
 @can_pin
@@ -573,13 +593,8 @@ def pin(update: Update, context: CallbackContext) -> str:
             msg.reply_text(
                 f"I have pinned a message.",
                 reply_markup=InlineKeyboardMarkup(
-                    [
-                        [
-                            InlineKeyboardButton(
-                                "👀 Go to message", url=f"{message_link}")
-                        ]
-                    ]
-                ), 
+                    [[InlineKeyboardButton("👀 Go to message", url=f"{message_link}")]]
+                ),
                 parse_mode=ParseMode.HTML,
                 disable_web_page_preview=True,
             )
@@ -594,6 +609,7 @@ def pin(update: Update, context: CallbackContext) -> str:
         )
 
         return log_message
+
 
 @rencmd(command="unpin", pass_args=True)
 @bot_admin
@@ -628,9 +644,7 @@ def unpin(update: Update, context: CallbackContext):
 
     if prev_message and is_group:
         try:
-            context.bot.unpinChatMessage(
-                chat.id, prev_message.message_id
-            )
+            context.bot.unpinChatMessage(chat.id, prev_message.message_id)
             msg.reply_text(
                 f"Unpinned <a href='{message_link}'>this message</a>.",
                 parse_mode=ParseMode.HTML,
@@ -643,14 +657,12 @@ def unpin(update: Update, context: CallbackContext):
     if not prev_message and is_group:
         try:
             context.bot.unpinChatMessage(chat.id)
-            msg.reply_text(
-                "Unpinned the last pinned message."
-            )
+            msg.reply_text("Unpinned the last pinned message.")
         except BadRequest as excp:
             if excp.message == "Message to unpin not found":
-               msg.reply_text(
-                   "I can't see pinned message, Maybe already unpined, or pin Message to old 🙂"
-               )
+                msg.reply_text(
+                    "I can't see pinned message, Maybe already unpined, or pin Message to old 🙂"
+                )
             else:
                 raise
 
@@ -661,6 +673,7 @@ def unpin(update: Update, context: CallbackContext):
     )
 
     return log_message
+
 
 @rencmd(command="pinned", pass_args=True)
 @bot_admin
@@ -684,12 +697,19 @@ def pinned(update: Update, context: CallbackContext) -> str:
             message_link = f"https://t.me/c/{link_chat_id}/{pinned_id}"
 
         msg.reply_text(
-            f'🔽 Pinned on {html.escape(chat.title)}.',
+            f"🔽 Pinned on {html.escape(chat.title)}.",
             reply_to_message_id=msg_id,
             parse_mode=ParseMode.HTML,
             disable_web_page_preview=True,
             reply_markup=InlineKeyboardMarkup(
-                [[InlineKeyboardButton(text="👀 Go to message", url=f"https://t.me/{link_chat_id}/{pinned_id}")]]
+                [
+                    [
+                        InlineKeyboardButton(
+                            text="👀 Go to message",
+                            url=f"https://t.me/{link_chat_id}/{pinned_id}",
+                        )
+                    ]
+                ]
             ),
         )
 
@@ -698,6 +718,7 @@ def pinned(update: Update, context: CallbackContext) -> str:
             f"There is no pinned message in <b>{html.escape(chat.title)}!</b>",
             parse_mode=ParseMode.HTML,
         )
+
 
 @rencmd(command="invitelink", pass_args=True)
 @bot_admin
@@ -722,6 +743,7 @@ def invite(update: Update, context: CallbackContext):
         update.effective_message.reply_text(
             "I can only give you invite links for supergroups and channels, sorry!",
         )
+
 
 @rencmd(command="staff", pass_args=True)
 @connection_status
@@ -772,7 +794,7 @@ def adminlist(update, context):
         if user.is_bot:
             administrators.remove(admin)
             continue
-      
+
         if status == "creator":
             text += "\n 🌏 Creator:"
             text += "\n<code> • </code>{}\n".format(name)
@@ -799,7 +821,7 @@ def adminlist(update, context):
                     html.escape(user.first_name + " " + (user.last_name or "")),
                 ),
             )
-       
+
         if status == "administrator":
             if custom_title:
                 try:
@@ -859,37 +881,38 @@ def button(update: Update, context: CallbackContext) -> str:
             can_restrict_members=bot_member.can_restrict_members,
             can_pin_messages=bot_member.can_pin_messages,
             can_manage_voice_chats=bot_member.can_manage_voice_chats,
-        )                
+        )
         demoted = bot.promoteChatMember(
-                      chat.id,
-                      user_id,
-                      can_change_info=False,
-                      can_post_messages=False,
-                      can_edit_messages=False,
-                      can_delete_messages=False,
-                      can_invite_users=False,
-                      can_restrict_members=False,
-                      can_pin_messages=False,
-                      can_promote_members=False,
-                      can_manage_voice_chats=False,
+            chat.id,
+            user_id,
+            can_change_info=False,
+            can_post_messages=False,
+            can_edit_messages=False,
+            can_delete_messages=False,
+            can_invite_users=False,
+            can_restrict_members=False,
+            can_pin_messages=False,
+            can_promote_members=False,
+            can_manage_voice_chats=False,
         )
         if demoted:
-        	update.effective_message.edit_text(
-        	    f"Admin {mention_html(user.id, user.first_name)} Demoted {mention_html(member.user.id, member.user.first_name)}!",
-        	    parse_mode=ParseMode.HTML,
-        	)
-        	query.answer("Demoted!")
-        	return (
-                    f"<b>{html.escape(chat.title)}:</b>\n" 
-                    f"#DEMOTE\n" 
-                    f"<b>Admin:</b> {mention_html(user.id, user.first_name)}\n"
-                    f"<b>User:</b> {mention_html(member.user.id, member.user.first_name)}"
-                )
+            update.effective_message.edit_text(
+                f"Admin {mention_html(user.id, user.first_name)} Demoted {mention_html(member.user.id, member.user.first_name)}!",
+                parse_mode=ParseMode.HTML,
+            )
+            query.answer("Demoted!")
+            return (
+                f"<b>{html.escape(chat.title)}:</b>\n"
+                f"#DEMOTE\n"
+                f"<b>Admin:</b> {mention_html(user.id, user.first_name)}\n"
+                f"<b>User:</b> {mention_html(member.user.id, member.user.first_name)}"
+            )
     else:
         update.effective_message.edit_text(
             "This user is not promoted or has left the group!"
         )
         return ""
+
 
 @rencmd(command="bug", pass_args=True)
 @bot_admin
@@ -942,22 +965,18 @@ def bug_reporting(update: Update, _: CallbackContext):
 def get_help(chat):
     return gs(chat, "admin_help")
 
+
 __mod_name__ = "Admins"
 __command_list__ = [
-    "setdesc"
-    "setsticker"
-    "setgpic"
-    "delgpic"
-    "setgtitle"
-    "staff",
-    "admins", 
-    "invitelink", 
-    "promote", 
+    "setdesc" "setsticker" "setgpic" "delgpic" "setgtitle" "staff",
+    "admins",
+    "invitelink",
+    "promote",
     "fullpromote",
     "lowpromote",
     "demote",
     "pin",
     "unpin",
     "pinned",
-    "reload"
+    "reload",
 ]

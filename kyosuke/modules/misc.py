@@ -20,7 +20,7 @@ from kyosuke import (
     WHITELIST_USERS,
     INFOPIC,
     sw,
-    StartTime
+    StartTime,
 )
 from kyosuke.__main__ import STATS, USER_INFO, TOKEN
 from kyosuke.modules.sql import SESSION
@@ -64,7 +64,8 @@ This will create two buttons on a single line, instead of one button per line.
 Keep in mind that your message <b>MUST</b> contain some text other than just a button!
 """
 
-@rencmd(command='id', pass_args=True)
+
+@rencmd(command="id", pass_args=True)
 def get_id(update: Update, context: CallbackContext):
     bot, args = context.bot, context.args
     message = update.effective_message
@@ -72,7 +73,6 @@ def get_id(update: Update, context: CallbackContext):
     msg = update.effective_message
     if user_id := extract_user(msg, args):
         if msg.reply_to_message and msg.reply_to_message.forward_from:
-
             user1 = message.reply_to_message.from_user
             user2 = message.reply_to_message.forward_from
 
@@ -84,27 +84,32 @@ def get_id(update: Update, context: CallbackContext):
             )
 
         else:
-
             user = bot.get_chat(user_id)
-            new_id = InlineKeyboardMarkup([[InlineKeyboardButton("INFO", url=f"https://t.me/{user.username}")]])
+            new_id = InlineKeyboardMarkup(
+                [[InlineKeyboardButton("INFO", url=f"https://t.me/{user.username}")]]
+            )
             msg.reply_text(
                 f"• {html.escape(user.first_name)}\n"
                 f"• Userid by <code>{user.id}</code>",
-                parse_mode=ParseMode.HTML, reply_markup=new_id,
+                parse_mode=ParseMode.HTML,
+                reply_markup=new_id,
             )
 
     elif chat.type == "private":
-        msg.reply_text(
-            f"Your id is <code>{chat.id}</code>.", parse_mode=ParseMode.HTML
-        )
+        msg.reply_text(f"Your id is <code>{chat.id}</code>.", parse_mode=ParseMode.HTML)
 
     else:
-        new_chatinfo = InlineKeyboardMarkup([[InlineKeyboardButton("CHATINFO", url=f"https://t.me/{chat.username}")]])
+        new_chatinfo = InlineKeyboardMarkup(
+            [[InlineKeyboardButton("CHATINFO", url=f"https://t.me/{chat.username}")]]
+        )
         msg.reply_text(
-            f"• This group's id is <code>{chat.id}</code>.\n", parse_mode=ParseMode.HTML, reply_markup=new_chatinfo
+            f"• This group's id is <code>{chat.id}</code>.\n",
+            parse_mode=ParseMode.HTML,
+            reply_markup=new_chatinfo,
         )
 
-@rencmd(command='gifid')
+
+@rencmd(command="gifid")
 def gifid(update: Update, _):
     msg = update.effective_message
     if msg.reply_to_message and msg.reply_to_message.animation:
@@ -115,7 +120,8 @@ def gifid(update: Update, _):
     else:
         update.effective_message.reply_text("Please reply to a gif to get its ID.")
 
-@rencmd(command='info', pass_args=True)
+
+@rencmd(command="info", pass_args=True)
 def info(update: Update, context: CallbackContext):  # sourcery no-metrics
     bot = context.bot
     args = context.args
@@ -123,7 +129,9 @@ def info(update: Update, context: CallbackContext):  # sourcery no-metrics
     chat = update.effective_chat
     if user_id := extract_user(update.effective_message, args):
         user = bot.get_chat(user_id)
-        new_info = InlineKeyboardMarkup([[InlineKeyboardButton("FBI", url=f"https://t.me/{user.username}")]])
+        new_info = InlineKeyboardMarkup(
+            [[InlineKeyboardButton("FBI", url=f"https://t.me/{user.username}")]]
+        )
 
     elif not message.reply_to_message and not args:
         user = (
@@ -147,7 +155,7 @@ def info(update: Update, context: CallbackContext):  # sourcery no-metrics
     else:
         return
 
-    if hasattr(user, 'type') and user.type != "private":
+    if hasattr(user, "type") and user.type != "private":
         text = get_chat_info(user)
         is_chat = True
     else:
@@ -161,16 +169,16 @@ def info(update: Update, context: CallbackContext):  # sourcery no-metrics
                 pfp = bot.get_file(pic).download(out=BytesIO())
                 pfp.seek(0)
                 message.reply_document(
-                        document=pfp,
-                        filename=f'{user.id}.jpg',
-                        caption=text,
-                        parse_mode=ParseMode.HTML,
+                    document=pfp,
+                    filename=f"{user.id}.jpg",
+                    caption=text,
+                    parse_mode=ParseMode.HTML,
                 )
             except AttributeError:  # AttributeError means no chat pic so just send text
                 message.reply_text(
-                        text,
-                        parse_mode=ParseMode.HTML,
-                        disable_web_page_preview=True,
+                    text,
+                    parse_mode=ParseMode.HTML,
+                    disable_web_page_preview=True,
                 )
         else:
             try:
@@ -181,20 +189,26 @@ def info(update: Update, context: CallbackContext):  # sourcery no-metrics
                 _file.seek(0)
 
                 message.reply_document(
-                        document=_file,
-                        caption=(text),
-                        parse_mode=ParseMode.HTML,
+                    document=_file,
+                    caption=(text),
+                    parse_mode=ParseMode.HTML,
                 )
 
             # Incase user don't have profile pic, send normal text
             except IndexError:
                 message.reply_text(
-                        text, parse_mode=ParseMode.HTML, disable_web_page_preview=True, reply_markup=new_info
+                    text,
+                    parse_mode=ParseMode.HTML,
+                    disable_web_page_preview=True,
+                    reply_markup=new_info,
                 )
 
     else:
         message.reply_text(
-            text, parse_mode=ParseMode.HTML, disable_web_page_preview=True, reply_markup=new_info
+            text,
+            parse_mode=ParseMode.HTML,
+            disable_web_page_preview=True,
+            reply_markup=new_info,
         )
 
 
@@ -226,24 +240,26 @@ def get_user_info(chat: Chat, user: User) -> str:
         if user_member.status == "administrator":
             result = bot.get_chat_member(chat.id, user.id)
             if result.custom_title:
-                text += f"\nThis user holds the title <b>{result.custom_title}</b> here."
+                text += (
+                    f"\nThis user holds the title <b>{result.custom_title}</b> here."
+                )
     if user.id == OWNER_ID:
-        text += '\nThis person is my owner'
+        text += "\nThis person is my owner"
         Nation_level_present = True
     elif user.id in DEV_USERS:
-        text += '\nThis Person is a part of Eagle Union'
+        text += "\nThis Person is a part of Eagle Union"
         Nation_level_present = True
     elif user.id in SUDO_USERS:
-        text += '\nThe Nation level of this person is Royal'
+        text += "\nThe Nation level of this person is Royal"
         Nation_level_present = True
     elif user.id in SUPPORT_USERS:
-        text += '\nThe Nation level of this person is Sakura'
+        text += "\nThe Nation level of this person is Sakura"
         Nation_level_present = True
     elif user.id in SARDEGNA_USERS:
-        text += '\nThe Nation level of this person is Sardegna'
+        text += "\nThe Nation level of this person is Sardegna"
         Nation_level_present = True
     elif user.id in WHITELIST_USERS:
-        text += '\nThe Nation level of this person is Neptunia'
+        text += "\nThe Nation level of this person is Neptunia"
         Nation_level_present = True
     if Nation_level_present:
         text += f' [<a href="https://t.me/{bot.username}?start=nations">?</a>]'
@@ -262,10 +278,7 @@ def get_user_info(chat: Chat, user: User) -> str:
 
 
 def get_chat_info(user):
-    text = (
-        f"<b>Chat Info:</b>\n"
-        f"<b>Title:</b> {user.title}"
-    )
+    text = f"<b>Chat Info:</b>\n" f"<b>Title:</b> {user.title}"
     if user.username:
         text += f"\n<b>Username:</b> @{html.escape(user.username)}"
     text += f"\n<b>Chat ID:</b> <code>{user.id}</code>"
@@ -275,7 +288,7 @@ def get_chat_info(user):
     return text
 
 
-@rencmd(command='echo', pass_args=True, filters=Filters.chat_type.groups)
+@rencmd(command="echo", pass_args=True, filters=Filters.chat_type.groups)
 @user_admin
 def echo(update: Update, _):
     args = update.effective_message.text.split(None, 1)
@@ -294,10 +307,13 @@ def shell(command):
     stdout, stderr = process.communicate()
     return (stdout, stderr)
 
-@rencmd(command='markdownhelp', filters=Filters.chat_type.private)
+
+@rencmd(command="markdownhelp", filters=Filters.chat_type.private)
 def markdown_help(update: Update, _):
     chat = update.effective_chat
-    update.effective_message.reply_text((gs(chat.id, "markdown_help_text")), parse_mode=ParseMode.HTML)
+    update.effective_message.reply_text(
+        (gs(chat.id, "markdown_help_text")), parse_mode=ParseMode.HTML
+    )
     update.effective_message.reply_text(
         "Try forwarding the following message to me, and you'll see!"
     )
@@ -306,6 +322,7 @@ def markdown_help(update: Update, _):
         "[URL](example.com) [button](buttonurl:github.com) "
         "[button2](buttonurl://google.com:same)"
     )
+
 
 def get_readable_time(seconds: int) -> str:
     count = 0
@@ -324,19 +341,24 @@ def get_readable_time(seconds: int) -> str:
     for x in range(len(time_list)):
         time_list[x] = str(time_list[x]) + time_suffix_list[x]
     if len(time_list) == 4:
-        ping_time += f'{time_list.pop()}, '
+        ping_time += f"{time_list.pop()}, "
 
     time_list.reverse()
     ping_time += ":".join(time_list)
 
     return ping_time
 
-stats_str = '''
-'''
-@rencmd(command='stats', can_disable=False)
+
+stats_str = """
+"""
+
+
+@rencmd(command="stats", can_disable=False)
 @sudo_plus
 def stats(update, context):
-    db_size = SESSION.execute("SELECT pg_size_pretty(pg_database_size(current_database()))").scalar_one_or_none()
+    db_size = SESSION.execute(
+        "SELECT pg_size_pretty(pg_database_size(current_database()))"
+    ).scalar_one_or_none()
     uptime = datetime.datetime.fromtimestamp(boot_time()).strftime("%Y-%m-%d %H:%M:%S")
     botuptime = get_readable_time((time.time() - StartTime))
     status = "*╒═══「 System statistics: 」*\n\n"
@@ -359,11 +381,9 @@ def stats(update, context):
     status += f"*• Uptime:* {str(botuptime)}" + "\n"
     status += f"*• Database size:* {str(db_size)}" + "\n"
     status += f"*• PyKillerx:* {str(pykillerx)}" + "\n"
-    status += f"*• Spamwatch Api:* {str(__sw__)}" +" \n"
+    status += f"*• Spamwatch Api:* {str(__sw__)}" + " \n"
     kb = [
-          [
-           InlineKeyboardButton('Ping', callback_data='pingCB')
-          ],
+        [InlineKeyboardButton("Ping", callback_data="pingCB")],
     ]
     try:
         repo = git.Repo(search_parent_directories=True)
@@ -373,12 +393,16 @@ def stats(update, context):
         status += f"*• Commit*: `{str(e)}`\\n"
 
     try:
-        update.effective_message.reply_text(status +
-            "\n*Bot statistics*:\n"
-            + "\n".join([mod.__stats__() for mod in STATS]) +
-            "\n\n[⍙ GitHub](https://github.com/TeamKillerX/kyosuke) | [⍚ Dev](https://t.me/xtsea/)\n\n" +
-            "╘══「 by [Bot](t.me/RendyTapiBot) 」\n",
-        parse_mode=ParseMode.MARKDOWN, reply_markup=InlineKeyboardMarkup(kb), disable_web_page_preview=True)
+        update.effective_message.reply_text(
+            status
+            + "\n*Bot statistics*:\n"
+            + "\n".join([mod.__stats__() for mod in STATS])
+            + "\n\n[⍙ GitHub](https://github.com/TeamKillerX/kyosuke) | [⍚ Dev](https://t.me/xtsea/)\n\n"
+            + "╘══「 by [Bot](t.me/RendyTapiBot) 」\n",
+            parse_mode=ParseMode.MARKDOWN,
+            reply_markup=InlineKeyboardMarkup(kb),
+            disable_web_page_preview=True,
+        )
     except BaseException:
         update.effective_message.reply_text(
             (
@@ -396,27 +420,32 @@ def stats(update, context):
             disable_web_page_preview=True,
         )
 
-@rencmd(command='ping')
+
+@rencmd(command="ping")
 def ping(update: Update, _):
-    new_ping = InlineKeyboardMarkup([[InlineKeyboardButton("Ping", callback_data="pingCB")]])
+    new_ping = InlineKeyboardMarkup(
+        [[InlineKeyboardButton("Ping", callback_data="pingCB")]]
+    )
     msg = update.effective_message
     start_time = time.time()
     message = msg.reply_text("Pinging...")
     end_time = time.time()
     ping_time = round((end_time - start_time) * 1000, 3)
     message.edit_text(
-        "*Pong!!!*\n`{}ms`".format(ping_time), parse_mode=ParseMode.MARKDOWN, reply_markup=new_ping
+        "*Pong!!!*\n`{}ms`".format(ping_time),
+        parse_mode=ParseMode.MARKDOWN,
+        reply_markup=new_ping,
     )
 
 
-@rencallback(pattern=r'^pingCB')
+@rencallback(pattern=r"^pingCB")
 def pingCallback(update: Update, context: CallbackContext):
     query = update.callback_query
     start_time = time.time()
-    requests.get('https://api.telegram.org')
+    requests.get("https://api.telegram.org")
     end_time = time.time()
     ping_time = round((end_time - start_time) * 1000, 3)
-    query.answer(f'Pong! {ping_time}ms')
+    query.answer(f"Pong! {ping_time}ms")
 
 
 def get_help(chat):

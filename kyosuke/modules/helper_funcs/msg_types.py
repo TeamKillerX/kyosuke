@@ -139,7 +139,6 @@ def get_welcome_type(msg: Message):  # sourcery no-metrics
 
 
 def get_filter_type(msg: Message):
-
     if not msg.reply_to_message and msg.text and len(msg.text.split()) >= 3:
         content = None
         text = msg.text.split(None, 2)[2]

@@ -22,6 +22,7 @@ from kyosuke.modules.log_channel import gloggable
 from kyosuke.modules.sql import nation_sql as sql
 from kyosuke.modules.helper_funcs.decorators import rencmd
 
+
 def check_user_id(user_id: int, context: CallbackContext) -> Optional[str]:
     bot = context.bot
     if not user_id:
@@ -33,7 +34,8 @@ def check_user_id(user_id: int, context: CallbackContext) -> Optional[str]:
     else:
         return None
 
-@rencmd(command='addsudo')
+
+@rencmd(command="addsudo")
 @dev_plus
 @gloggable
 def addsudo(update: Update, context: CallbackContext) -> str:
@@ -67,10 +69,7 @@ def addsudo(update: Update, context: CallbackContext) -> str:
     SUDO_USERS.append(user_id)
 
     update.effective_message.reply_text(
-        rt
-        + "\nSuccessfully promoted {} to Sudo!".format(
-            user_member.first_name
-        )
+        rt + "\nSuccessfully promoted {} to Sudo!".format(user_member.first_name)
     )
 
     log_message = (
@@ -85,7 +84,7 @@ def addsudo(update: Update, context: CallbackContext) -> str:
     return log_message
 
 
-@rencmd(command='addsupport')
+@rencmd(command="addsupport")
 @sudo_plus
 @gloggable
 def addsupport(
@@ -136,7 +135,7 @@ def addsupport(
     return log_message
 
 
-@rencmd(command='addwhitelist')
+@rencmd(command="addwhitelist")
 @sudo_plus
 @gloggable
 def addwhitelist(update: Update, context: CallbackContext) -> str:
@@ -184,7 +183,7 @@ def addwhitelist(update: Update, context: CallbackContext) -> str:
     return log_message
 
 
-@rencmd(command='addsardegna')
+@rencmd(command="addsardegna")
 @sudo_plus
 @gloggable
 def addsardegna(update: Update, context: CallbackContext) -> str:
@@ -310,7 +309,7 @@ def removesupport(update: Update, context: CallbackContext) -> str:
         return ""
 
 
-@rencmd(command='removewhitelist')
+@rencmd(command="removewhitelist")
 @sudo_plus
 @gloggable
 def removewhitelist(update: Update, context: CallbackContext) -> str:
@@ -346,7 +345,7 @@ def removewhitelist(update: Update, context: CallbackContext) -> str:
         return ""
 
 
-@rencmd(command='removesardegna')
+@rencmd(command="removesardegna")
 @sudo_plus
 @gloggable
 def removesardegna(update: Update, context: CallbackContext) -> str:
@@ -381,6 +380,7 @@ def removesardegna(update: Update, context: CallbackContext) -> str:
         message.reply_text("This user is not a Sardegna Nation!")
         return ""
 
+
 # I added extra new lines
 nations = """ kyosuke has bot access levels we call as *"Nation Levels"*
 \n*kyosuke Union* - Devs who can access the bots server and can execute, edit, modify bot code. Can also manage other Nations
@@ -400,7 +400,8 @@ def send_nations(update):
         nations, parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True
     )
 
-@rencmd(command='removesardegna')
+
+@rencmd(command="removesardegna")
 @whitelist_plus
 def whitelistlist(update: Update, context: CallbackContext):
     bot = context.bot
@@ -415,7 +416,8 @@ def whitelistlist(update: Update, context: CallbackContext):
             pass
     update.effective_message.reply_text(reply, parse_mode=ParseMode.HTML)
 
-@rencmd(command='sardegnas')
+
+@rencmd(command="sardegnas")
 @whitelist_plus
 def Sardegnalist(update: Update, context: CallbackContext):
     bot = context.bot
@@ -428,6 +430,7 @@ def Sardegnalist(update: Update, context: CallbackContext):
         except TelegramError:
             pass
     update.effective_message.reply_text(reply, parse_mode=ParseMode.HTML)
+
 
 @rencmd(command=["supportlist", "sakuras"])
 @whitelist_plus
@@ -442,6 +445,7 @@ def supportlist(update: Update, context: CallbackContext):
         except TelegramError:
             pass
     update.effective_message.reply_text(reply, parse_mode=ParseMode.HTML)
+
 
 @rencmd(command=["sudolist", "royals"])
 @whitelist_plus
@@ -458,7 +462,8 @@ def sudolist(update: Update, context: CallbackContext):
             pass
     update.effective_message.reply_text(reply, parse_mode=ParseMode.HTML)
 
-@rencmd(command='devlist')
+
+@rencmd(command="devlist")
 @whitelist_plus
 def devlist(update: Update, context: CallbackContext):
     bot = context.bot
