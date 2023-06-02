@@ -78,7 +78,7 @@ def user_is_not_admin_errmsg(msg: Message, permission: AdminPerms = None, cb: Ca
 
 
 def button_expired_error(u: Update):
-	errmsg = f"This button has expired!"
+	errmsg = "This button has expired!"
 	if u.callback_query:
 		u.callback_query.answer(errmsg, show_alert = True)
 		u.effective_message.delete()

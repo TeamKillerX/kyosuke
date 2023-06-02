@@ -196,10 +196,12 @@ def perm_callback_check(upd: Update, _: Ctx):
 	mem = user_is_admin(upd, user_id, perm = perm if perm != 'None' else None)
 
 	if not mem:  # not admin or doesn't have the required perm
-		eam(msg,
+		eam(
+			msg,
 			"You need to be an admin to perform this action!"
-			if not perm == 'None'
-			else f"You lack the permission: `{perm}`!")
+			if perm != 'None'
+			else f"You lack the permission: `{perm}`!",
+		)
 		return
 
 	try:

@@ -30,8 +30,7 @@ def is_royal(user_id: int, role: str = None):
 
 def get_royal_role(user_id: int):
 	with SESSION() as local_session:
-		ret = local_session.query(Royals).get({"user_id": user_id})
-		if ret:
+		if ret := local_session.query(Royals).get({"user_id": user_id}):
 			return ret.role_name
 	return None
 
@@ -45,13 +44,11 @@ def get_royals(role: str = None):
 def set_royal_role(user_id: int, role: str):
 	with SESSION() as local_session:
 		try:
-			# Check if the user exists first and create them if they don't.
-			ret = local_session.query(Royals).get({"user_id": user_id})
-			if not ret:
+			if ret := local_session.query(Royals).get({"user_id": user_id}):
+				ret.role_name = role
+			else:
 				ret = Royals(user_id, role)
 				local_session.add(ret)
-			else:
-				ret.role_name = role
 			local_session.commit()
 			local_session.flush()
 		except Exception:
@@ -61,8 +58,7 @@ def set_royal_role(user_id: int, role: str):
 def remove_royal(user_id: int):
 	with SESSION() as local_session:
 		try:
-			ret = local_session.query(Royals).get({"user_id": user_id})
-			if ret:
+			if ret := local_session.query(Royals).get({"user_id": user_id}):
 				local_session.delete(ret)
 			local_session.commit()
 		except Exception:

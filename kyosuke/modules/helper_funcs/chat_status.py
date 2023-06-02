@@ -67,9 +67,7 @@ def is_user_admin(update: Update, user_id: int, member: ChatMember = None) -> bo
             admin_list = [x.user.id for x in chat_admins]
             ADMIN_CACHE[chat.id] = admin_list
 
-            if user_id in admin_list:
-                return True
-            return False
+            return user_id in admin_list
 
 
 def is_bot_admin(chat: Chat, bot_id: int, bot_member: ChatMember = None) -> bool:
@@ -386,8 +384,9 @@ def user_can_ban(func):
         member = update.effective_chat.get_member(user)
 
         if (
-                not (member.can_restrict_members or member.status == "creator")
-                and not user in SUDO_USERS
+            not member.can_restrict_members
+            and member.status != "creator"
+            and user not in SUDO_USERS
         ):
             update.effective_message.reply_text(
                 "Sorry son, but you're not worthy to wield the banhammer."

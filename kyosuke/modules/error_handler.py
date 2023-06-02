@@ -48,21 +48,7 @@ def error_callback(update: Update, context: CallbackContext):
         None, context.error, context.error.__traceback__
     )
     tb = "".join(tb_list)
-    pretty_message = (
-        "An exception was raised while handling an update\n"
-        "User: {}\n"
-        "Chat: {} {}\n"
-        "Callback data: {}\n"
-        "Message: {}\n\n"
-        "Full Traceback: {}"
-    ).format(
-        update.effective_user.id,
-        update.effective_chat.title if update.effective_chat else "",
-        update.effective_chat.id if update.effective_chat else "",
-        update.callback_query.data if update.callback_query else "None",
-        update.effective_message.text if update.effective_message else "No message",
-        tb,
-    )
+    pretty_message = f'An exception was raised while handling an update\nUser: {update.effective_user.id}\nChat: {update.effective_chat.title if update.effective_chat else ""} {update.effective_chat.id if update.effective_chat else ""}\nCallback data: {update.callback_query.data if update.callback_query else "None"}\nMessage: {update.effective_message.text if update.effective_message else "No message"}\n\nFull Traceback: {tb}'
     paste_url = upload_text(pretty_message)
 
 
@@ -90,7 +76,7 @@ def list_errors(update: Update, context: CallbackContext):
         return
     e = dict(sorted(errors.items(), key=lambda item: item[1], reverse=True))
     msg = "<b>Errors List:</b>\n"
-    for x, value in e.items():
+    for x in e:
         msg += f"• <code>{x}:</code> <b>{e[x]}</b> #{x.identifier}\n"
 
     msg += f"{len(errors)} have occurred since startup."

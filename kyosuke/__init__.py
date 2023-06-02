@@ -130,12 +130,10 @@ class KyosukeINIT:
             return None
         else:
             try:
-                sw = spamwatch.Client(spamwatch_api)
-                return sw
+                return spamwatch.Client(spamwatch_api)
             except:
-                sw = None
                 log.warning("Can't connect to SpamWatch!")
-                return sw
+                return None
 
 
 KInit = KyosukeINIT(parser=renconfig)
@@ -270,8 +268,7 @@ pbot = Client(
     bot_token=TOKEN,
     workers=min(32, os.cpu_count() + 4),
 )
-apps = []
-apps.append(pbot)
+apps = [pbot]
 loop = asyncio.get_event_loop()
 
 async def get_entity(client, entity):

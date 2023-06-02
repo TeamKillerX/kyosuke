@@ -41,8 +41,9 @@ def ban_user(bot: Bot, who: ChatMember, where_chat_id, reason=None) -> Union[str
         bot.banChatMember(where_chat_id, who.user.id)
     except BadRequest as excp:
         if excp.message != "Reply message not found":
-            log.warning("error banning user {}:{} in {} because: {}".format(
-                    who.user.first_name, who.user.id, where_chat_id, excp.message))
+            log.warning(
+                f"error banning user {who.user.first_name}:{who.user.id} in {where_chat_id} because: {excp.message}"
+            )
             return False
 
     return (
@@ -56,8 +57,9 @@ def unban_user(bot: Bot, who: ChatMember, where_chat_id, reason=None) -> Union[s
         bot.unbanChatMember(where_chat_id, who.user.id)
     except BadRequest as excp:
         if excp.message != "Reply message not found":
-            log.warning("error banning user {}:{} in {} because: {}".format(
-                    who.user.first_name, who.user.id, where_chat_id, excp.message))
+            log.warning(
+                f"error banning user {who.user.first_name}:{who.user.id} in {where_chat_id} because: {excp.message}"
+            )
             return False
 
     return (
@@ -68,7 +70,6 @@ def unban_user(bot: Bot, who: ChatMember, where_chat_id, reason=None) -> Union[s
 
 
 @rencmd(command='ban', pass_args=True)
-# @renmsg(Filters.regex("(?i)^ban"), group=3)
 @connection_status
 @bot_admin
 @typing_action
@@ -83,13 +84,13 @@ def ban(update: Update, context: CallbackContext) -> Optional[str]:  # sourcery 
     log_message = ""
     reason = ""
     if message.reply_to_message and message.reply_to_message.sender_chat:
-        r = bot.ban_chat_sender_chat(chat_id=chat.id, sender_chat_id=message.reply_to_message.sender_chat.id)
-        if r:
-            message.reply_text("Channel {} was banned successfully from {}".format(
-                html.escape(message.reply_to_message.sender_chat.title),
-                html.escape(chat.title)
-            ),
-                parse_mode="html"
+        if r := bot.ban_chat_sender_chat(
+            chat_id=chat.id,
+            sender_chat_id=message.reply_to_message.sender_chat.id,
+        ):
+            message.reply_text(
+                f"Channel {html.escape(message.reply_to_message.sender_chat.title)} was banned successfully from {html.escape(chat.title)}",
+                parse_mode="html",
             )
             return (
                 f"<b>{html.escape(chat.title)}:</b>\n"
@@ -143,30 +144,29 @@ def ban(update: Update, context: CallbackContext) -> Optional[str]:  # sourcery 
         f"<b>Userid:</b> {member.user.id}"
     )
     if reason:
-        log += "\n<b>Reason:</b> {}".format(reason)
+        log += f"\n<b>Reason:</b> {reason}"
 
     try:
         chat.ban_member(user_id)
         # context.bot.send_sticker(chat.id, BAN_STICKER)  # banhammer marie sticker
         context.bot.sendMessage(
             chat.id,
-            "{} was banned by {} in <b>{}</b>\n<b>ID</b>: [<code>{}</code>]\n<b>Reason</b>: {}\n<b>Read</b>: Please take some of your precious time to read the rules!".format(
-                mention_html(member.user.id, member.user.first_name), mention_html(user.id, user.first_name),
-                message.chat.title, member.user.id, reason
-            ),
+            f"{mention_html(member.user.id, member.user.first_name)} was banned by {mention_html(user.id, user.first_name)} in <b>{message.chat.title}</b>\n<b>ID</b>: [<code>{member.user.id}</code>]\n<b>Reason</b>: {reason}\n<b>Read</b>: Please take some of your precious time to read the rules!",
             reply_markup=InlineKeyboardMarkup(
                 [
                     [
                         InlineKeyboardButton(
-                            text="How to use ?", callback_data="hacker_help_pub"
+                            text="How to use ?",
+                            callback_data="hacker_help_pub",
                         ),
                     ],
                     [
                         InlineKeyboardButton(
-                        "📝 Read the rules", url="t.me/{}?start={}".format(dispatcher.bot.username, chat.id)
-                        ),
-                    ]
-                 ]
+                            "📝 Read the rules",
+                            url=f"t.me/{dispatcher.bot.username}?start={chat.id}",
+                        )
+                    ],
+                ]
             ),
             parse_mode=ParseMode.HTML,
         )
@@ -247,7 +247,7 @@ def temp_ban(update: Update, context: CallbackContext) -> str:
         f"<b>Time:</b> {time_val}"
     )
     if reason:
-        log += "\n<b>Reason:</b> {}".format(reason)
+        log += f"\n<b>Reason:</b> {reason}"
 
     try:
         chat.ban_member(user_id, until_date=bantime)
@@ -313,8 +313,7 @@ def kick(update: Update, context: CallbackContext) -> str:
         message.reply_text("I really wish I could kick this user....")
         return log_message
 
-    res = chat.unban_member(user_id)  # unban on current user = kick
-    if res:
+    if res := chat.unban_member(user_id):
         # bot.send_sticker(chat.id, BAN_STICKER)  # banhammer marie sticker
         bot.sendMessage(
             chat.id,
@@ -348,8 +347,7 @@ def kickme(update: Update, context: CallbackContext):
     if is_user_admin(update, user_id):
         update.effective_message.reply_text("I wish I could... but you're an admin.")
         return
-    res = update.effective_chat.unban_member(user_id)  # unban on current user = kick
-    if res:
+    if res := update.effective_chat.unban_member(user_id):
         update.effective_message.reply_text("*KICKMEMEK GROUP LEFT*")
     else:
         update.effective_message.reply_text("Huh? I can't :/")
@@ -368,13 +366,13 @@ def unban(update: Update, context: CallbackContext) -> Optional[str]:
     log_message = ""
     bot, args = context.bot, context.args
     if message.reply_to_message and message.reply_to_message.sender_chat:
-        r = bot.unban_chat_sender_chat(chat_id=chat.id, sender_chat_id=message.reply_to_message.sender_chat.id)
-        if r:
-            message.reply_text("Channel {} was unbanned successfully from {}".format(
-                html.escape(message.reply_to_message.sender_chat.title),
-                html.escape(chat.title)
-            ),
-                parse_mode="html"
+        if r := bot.unban_chat_sender_chat(
+            chat_id=chat.id,
+            sender_chat_id=message.reply_to_message.sender_chat.id,
+        ):
+            message.reply_text(
+                f"Channel {html.escape(message.reply_to_message.sender_chat.title)} was unbanned successfully from {html.escape(chat.title)}",
+                parse_mode="html",
             )
             return (
                 f"<b>{html.escape(chat.title)}:</b>\n"
@@ -408,10 +406,7 @@ def unban(update: Update, context: CallbackContext) -> Optional[str]:
     chat.unban_member(user_id)
     bot.sendMessage(
         chat.id,
-        "{} was unbanned by {} in <b>{}</b>\n<b>ID</b>: [<code>{}</code>]\n<b>Reason</b>: <code>{}</code>".format(
-            mention_html(member.user.id, member.user.first_name), mention_html(user.id, user.first_name),
-            message.chat.title, member.user.id, reason
-        ),
+        f"{mention_html(member.user.id, member.user.first_name)} was unbanned by {mention_html(user.id, user.first_name)} in <b>{message.chat.title}</b>\n<b>ID</b>: [<code>{member.user.id}</code>]\n<b>Reason</b>: <code>{reason}</code>",
         parse_mode=ParseMode.HTML,
     )
 
@@ -451,12 +446,11 @@ def selfunban(context: CallbackContext, update: Update) -> Optional[str]:
     try:
         member = chat.get_member(user.id)
     except BadRequest as excp:
-        if excp.message == "User not found":
-            message.reply_text("I can't seem to find this user.")
-            return
-        else:
+        if excp.message != "User not found":
             raise
 
+        message.reply_text("I can't seem to find this user.")
+        return
     if is_user_in_chat(chat, user.id):
         message.reply_text("Aren't you already in the chat??")
         return
@@ -464,13 +458,7 @@ def selfunban(context: CallbackContext, update: Update) -> Optional[str]:
     chat.unban_member(user.id)
     message.reply_text("Yep, I have unbanned you.")
 
-    log = (
-        f"<b>{html.escape(chat.title)}:</b>\n"
-        f"#UNBANNED\n"
-        f"<b>User:</b> {mention_html(member.user.id, member.user.first_name)}"
-    )
-
-    return log
+    return f"<b>{html.escape(chat.title)}:</b>\n#UNBANNED\n<b>User:</b> {mention_html(member.user.id, member.user.first_name)}"
 
 def hacker_pub_help(update: Update, context: CallbackContext):
     update.effective_message.reply_text(

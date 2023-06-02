@@ -121,9 +121,7 @@ def detect_user(user_id, chat_id, message, parsing_date):
 			if chat_id not in IGNORED_CHATS:
 				chat = dispatcher.bot.get_chat(chat_id)
 				if bot_is_admin(chat, AdminPerms.CAN_RESTRICT_MEMBERS):
-					if (user_id, chat_id) in ERRORS:
-						pass
-					else:
+					if (user_id, chat_id) not in ERRORS:
 						try:
 							if str(user_id).startswith("-100"):
 								dispatcher.bot.ban_chat_sender_chat(chat_id, user_id)
@@ -144,7 +142,6 @@ def detect_user(user_id, chat_id, message, parsing_date):
 									"Error banning user!\n ID: `{}`\nChat: `{}`\n\n{}".format(
 											user_id, chat_id, e), parse_mode = "markdown")
 							ERRORS.append((user_id, chat_id))  # don't spam that it failed
-							pass
 				elif message.chat.type != 'private':
 
 					if chat_id not in IGNORED_CHATS:
@@ -179,6 +176,4 @@ def detect_user(user_id, chat_id, message, parsing_date):
 		return True
 
 	elif chat_id in IGNORED_CHATS:
-		if user_id in NoResUser:
-			return False
-		return True
+		return user_id not in NoResUser

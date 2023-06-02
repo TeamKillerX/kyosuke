@@ -61,14 +61,13 @@ if is_module_loaded(FILENAME):
                     command = fst_word[1:].split("@")
                     command.append(message.bot.username)
 
-                    if not (
-                        command[0].lower() in self.command
-                        and command[1].lower() == message.bot.username.lower()
+                    if (
+                        command[0].lower() not in self.command
+                        or command[1].lower() != message.bot.username.lower()
                     ):
                         return None
 
-                    filter_result = self.filters(update)
-                    if filter_result:
+                    if filter_result := self.filters(update):
                         chat = update.effective_chat
                         user = update.effective_user
                         # disabled, admincmd, user admin
@@ -77,11 +76,7 @@ if is_module_loaded(FILENAME):
                             is_disabled = command[
                                 0
                             ] in ADMIN_CMDS and is_user_admin(update, user.id)
-                            if not is_disabled:
-                                return None
-                            else:
-                                return args, filter_result
-
+                            return None if not is_disabled else (args, filter_result)
                         return args, filter_result
                     else:
                         return False
@@ -128,11 +123,9 @@ if is_module_loaded(FILENAME):
             if disable_cmd in set(DISABLE_CMDS + DISABLE_OTHER):
                 sql.disable_command(chat.id, disable_cmd)
                 if conn:
-                    text = "Disabled the use of `{}` command in *{}*!".format(
-                        disable_cmd, chat_name
-                    )
+                    text = f"Disabled the use of `{disable_cmd}` command in *{chat_name}*!"
                 else:
-                    text = "Disabled the use of `{}` command!".format(disable_cmd)
+                    text = f"Disabled the use of `{disable_cmd}` command!"
                 send_message(
                     update.effective_message,
                     text,
@@ -174,11 +167,9 @@ if is_module_loaded(FILENAME):
 
             if sql.enable_command(chat.id, enable_cmd):
                 if conn:
-                    text = "Enabled the use of `{}` command in *{}*!".format(
-                        enable_cmd, chat_name
-                    )
+                    text = f"Enabled the use of `{enable_cmd}` command in *{chat_name}*!"
                 else:
-                    text = "Enabled the use of `{}` command!".format(enable_cmd)
+                    text = f"Enabled the use of `{enable_cmd}` command!"
                 send_message(
                     update.effective_message,
                     text,
@@ -195,12 +186,12 @@ if is_module_loaded(FILENAME):
     def list_cmds(update, context):
         if DISABLE_CMDS + DISABLE_OTHER:
             result = "".join(
-                " - `{}`\n".format(escape_markdown(str(cmd)))
+                f" - `{escape_markdown(str(cmd))}`\n"
                 for cmd in set(DISABLE_CMDS + DISABLE_OTHER)
             )
 
             update.effective_message.reply_text(
-                "The following commands are toggleable:\n{}".format(result),
+                f"The following commands are toggleable:\n{result}",
                 parse_mode=ParseMode.MARKDOWN,
             )
         else:
@@ -212,15 +203,14 @@ if is_module_loaded(FILENAME):
         if not disabled:
             return "No commands are disabled!"
 
-        result = "".join(" - `{}`\n".format(escape_markdown(cmd)) for cmd in disabled)
-        return "The following commands are currently restricted:\n{}".format(result)
+        result = "".join(f" - `{escape_markdown(cmd)}`\n" for cmd in disabled)
+        return f"The following commands are currently restricted:\n{result}"
 
     @typing_action
     def commands(update, context):
         chat = update.effective_chat
         user = update.effective_user
-        conn = connected(context.bot, update, chat, user.id, need_admin=True)
-        if conn:
+        if conn := connected(context.bot, update, chat, user.id, need_admin=True):
             chat = dispatcher.bot.getChat(conn)
             chat_id = conn
         else:
@@ -242,9 +232,7 @@ if is_module_loaded(FILENAME):
             sql.disable_command(chat_id, disable_cmd)
 
     def __stats__():
-        return "• {} disabled items, across {} chats.".format(
-            sql.num_disabled(), sql.num_chats()
-        )
+        return f"• {sql.num_disabled()} disabled items, across {sql.num_chats()} chats."
 
     def __migrate__(old_chat_id, new_chat_id):
         sql.migrate_chat(old_chat_id, new_chat_id)

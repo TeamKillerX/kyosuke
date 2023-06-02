@@ -61,22 +61,18 @@ def warn_immune(message, update, uid, warner):
             return True
         if uid in SUDO_USERS:
             message.reply_text("This user is a SUDO user, i'm not gonna warn him!")
-            return True
         else:
             message.reply_text("Damn admins, They are too far to be warned!")
-            return True
-
-    if uid in WHITELIST_USERS:
-        if warner:
-            message.reply_text("Whitelisted users are warn immune.")
-            return True
-        else:
-            message.reply_text(
-                "A whitelisted user triggered an auto warn filter!\nI can't warn them users but they should avoid abusing this."
-            )
-            return True
-    else:
+        return True
+    if uid not in WHITELIST_USERS:
         return False
+    if warner:
+        message.reply_text("Whitelisted users are warn immune.")
+    else:
+        message.reply_text(
+            "A whitelisted user triggered an auto warn filter!\nI can't warn them users but they should avoid abusing this."
+        )
+    return True
 
 # Not async
 def warn(
@@ -132,12 +128,13 @@ def warn(
             [
                 [
                     InlineKeyboardButton(
-                        "🔘 Remove warn", callback_data="rm_warn({})".format(user.id)
+                        "🔘 Remove warn", callback_data=f"rm_warn({user.id})"
                     )
                 ],
                 [
                     InlineKeyboardButton(
-                        "📝 Read the rules", url="t.me/{}?start={}".format(dispatcher.bot.username, chat.id)
+                        "📝 Read the rules",
+                        url=f"t.me/{dispatcher.bot.username}?start={chat.id}",
                     )
                 ],
             ]
@@ -229,12 +226,13 @@ def swarn(
             [
                 [
                     InlineKeyboardButton(
-                        "🔘 Remove warn", callback_data="rm_warn({})".format(user.id)
+                        "🔘 Remove warn", callback_data=f"rm_warn({user.id})"
                     )
                 ],
                 [
                     InlineKeyboardButton(
-                        "📝 Read the rules", url="t.me/{}?start={}".format(dispatcher.bot.username, chat.id)
+                        "📝 Read the rules",
+                        url=f"t.me/{dispatcher.bot.username}?start={chat.id}",
                     )
                 ],
             ]
@@ -269,16 +267,15 @@ def swarn(
         message.reply_text(reply, reply_markup=keyboard, parse_mode=ParseMode.HTML)
         message.delete()
     except BadRequest as excp:
-        if excp.message == "Reply message not found":
-            # Do not reply
-            if message.reply_to_message:
-                message.reply_to_message.delete()
-            message.reply_text(
-                reply, reply_markup=keyboard, parse_mode=ParseMode.HTML, quote=False
-            )
-            message.delete()
-        else:
+        if excp.message != "Reply message not found":
             raise
+        # Do not reply
+        if message.reply_to_message:
+            message.reply_to_message.delete()
+        message.reply_text(
+            reply, reply_markup=keyboard, parse_mode=ParseMode.HTML, quote=False
+        )
+        message.delete()
     return log_reason
 
 # Not async
@@ -334,12 +331,13 @@ def dwarn(
             [
                 [
                     InlineKeyboardButton(
-                        "🔘 Remove warn", callback_data="rm_warn({})".format(user.id)
+                        "🔘 Remove warn", callback_data=f"rm_warn({user.id})"
                     )
                 ],
                 [
                     InlineKeyboardButton(
-                        "📝 Read the rules", url="t.me/{}?start={}".format(dispatcher.bot.username, chat.id)
+                        "📝 Read the rules",
+                        url=f"t.me/{dispatcher.bot.username}?start={chat.id}",
                     )
                 ],
             ]
@@ -355,7 +353,7 @@ def dwarn(
         if reason:
             reply += f"\n<code> </code><b>•  Reason:</b> {html.escape(reason)}"
         reply += f"\nPlease take some of your precious time to read the rules!"
-        
+
         log_reason = (
             f"<b>{html.escape(chat.title)}:</b>\n"
             f"#WARN\n"
@@ -371,15 +369,14 @@ def dwarn(
             message.reply_to_message.delete()
         message.reply_text(reply, reply_markup=keyboard, parse_mode=ParseMode.HTML)
     except BadRequest as excp:
-        if excp.message == "Reply message not found":
-            # Do not reply
-            if message.reply_to_message:
-                message.reply_to_message.delete()
-            message.reply_text(
-                reply, reply_markup=keyboard, parse_mode=ParseMode.HTML, quote=False
-            )
-        else:
+        if excp.message != "Reply message not found":
             raise
+        # Do not reply
+        if message.reply_to_message:
+            message.reply_to_message.delete()
+        message.reply_text(
+            reply, reply_markup=keyboard, parse_mode=ParseMode.HTML, quote=False
+        )
     return log_reason
 
 @rencallback(pattern=r"rm_warn")
@@ -390,7 +387,7 @@ def button(update: Update, _: CallbackContext) -> str:
     query: Optional[CallbackQuery] = update.callback_query
     user: Optional[User] = update.effective_user
     if match := re.match(r"rm_warn\((.+?)\)", query.data):
-        user_id = match.group(1)
+        user_id = match[1]
         chat: Optional[Chat] = update.effective_chat
         if sql.remove_warn(user_id, chat.id):
             update.effective_message.edit_text(
@@ -468,7 +465,26 @@ def warn_user(update: Update, context: CallbackContext) -> str:
                 return swarn(chat.get_member(user_id).user, update, reason, message, dels, warner)
         else:
             message.reply_text("That looks like an invalid User ID to me.")
-    if delsilent:
+    if not delsilent and delban and user_id:
+        return (
+            dwarn(
+                message.reply_to_message.from_user,
+                update,
+                reason,
+                message,
+                warner,
+            )
+            if (
+                message.reply_to_message
+                and message.reply_to_message.from_user.id == user_id
+            )
+            else dwarn(
+                chat.get_member(user_id).user, update, reason, message, warner
+            )
+        )
+    elif not delsilent and delban or not delsilent and not user_id:
+        message.reply_text("That looks like an invalid User ID to me.")
+    elif delsilent:
         dels = True
         if user_id:
             if (
@@ -487,40 +503,23 @@ def warn_user(update: Update, context: CallbackContext) -> str:
                 return swarn(chat.get_member(user_id).user, update, reason, message, dels, warner)
         else:
             message.reply_text("That looks like an invalid User ID to me.")
-    elif delban:
-        if user_id:
-            if (
-                message.reply_to_message
-                and message.reply_to_message.from_user.id == user_id
-            ):
-                return dwarn(
-                    message.reply_to_message.from_user,
-                    update,
-                    reason,
-                    message,
-                    warner,
-                )
-            else:
-                return dwarn(chat.get_member(user_id).user, update, reason, message, warner)
-        else:
-            message.reply_text("That looks like an invalid User ID to me.")
     else:
-        if user_id:
+        return (
+            warn(
+                message.reply_to_message.from_user,
+                update,
+                reason,
+                message.reply_to_message,
+                warner,
+            )
             if (
                 message.reply_to_message
                 and message.reply_to_message.from_user.id == user_id
-            ):
-                return warn(
-                    message.reply_to_message.from_user,
-                    update,
-                    reason,
-                    message.reply_to_message,
-                    warner,
-                )
-            else:
-                return warn(chat.get_member(user_id).user, update, reason, message, warner)
-        else:
-            message.reply_text("That looks like an invalid User ID to me.")
+            )
+            else warn(
+                chat.get_member(user_id).user, update, reason, message, warner
+            )
+        )
     return ""
 
 @rencmd(command=["resetwarn", "resetwarns"], pass_args=True)
@@ -703,17 +702,16 @@ def reply_filter(update: Update, context: CallbackContext) -> Optional[str]:
 @user_admin_check(AdminPerms.CAN_CHANGE_INFO)
 @loggable
 def set_warn_limit(update: Update, context: CallbackContext) -> str:
-    args = context.args
     chat: Optional[Chat] = update.effective_chat
-    user = update.effective_user
     msg: Optional[Message] = update.effective_message
-    if args:
+    if args := context.args:
+        user = update.effective_user
         if args[0].isdigit():
             if int(args[0]) < 3:
                 msg.reply_text("The minimum warn limit is 3!")
             else:
                 sql.set_warn_limit(chat.id, int(args[0]))
-                msg.reply_text("Updated the warn limit to {}".format(args[0]))
+                msg.reply_text(f"Updated the warn limit to {args[0]}")
                 return (
                     f"<b>{html.escape(chat.title)}:</b>\n"
                     f"#SET_WARN_LIMIT\n"
@@ -725,19 +723,18 @@ def set_warn_limit(update: Update, context: CallbackContext) -> str:
     else:
         limit, _ = sql.get_warn_setting(chat.id)
 
-        msg.reply_text("The current warn limit is {}".format(limit))
+        msg.reply_text(f"The current warn limit is {limit}")
     return ""
 
 @rencmd(command="strongwarn", pass_args=True)
 @user_admin_check(AdminPerms.CAN_CHANGE_INFO)
 def set_warn_strength(update: Update, context: CallbackContext):
-    args = context.args
     chat: Optional[Chat] = update.effective_chat
-    user: Optional[User] = update.effective_user
     msg: Optional[Message] = update.effective_message
 
 
-    if args:
+    if args := context.args:
+        user: Optional[User] = update.effective_user
         if args[0].lower() in ("on", "yes"):
             sql.set_warn_strength(chat.id, False)
             msg.reply_text("Too many warns will now result in a Ban!")

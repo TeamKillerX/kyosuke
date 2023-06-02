@@ -33,7 +33,7 @@ def approve(update: Update, context: CallbackContext):
         member = chat.get_member(user_id)
     except BadRequest:
         return ""
-    if member.status == "administrator" or member.status == "creator":
+    if member.status in ["administrator", "creator"]:
         message.reply_text(
             "User is already admin - locks, blocklists, and antiflood already don't apply to them."
         )
@@ -50,13 +50,7 @@ def approve(update: Update, context: CallbackContext):
         f"will now be ignored by automated admin actions like locks, blocklists, and antiflood.",
         parse_mode=ParseMode.MARKDOWN,
     )
-    log_message = (
-        f"<b>{html.escape(chat.title)}:</b>\n"
-        f"#APPROVED\n"
-        f"<b>Admin:</b> {mention_html(user.id, user.first_name)}\n"
-        f"<b>User:</b> {mention_html(member.user.id, member.user.first_name)}")
-
-    return log_message
+    return f"<b>{html.escape(chat.title)}:</b>\n#APPROVED\n<b>Admin:</b> {mention_html(user.id, user.first_name)}\n<b>User:</b> {mention_html(member.user.id, member.user.first_name)}"
 
 
 @rencmd(command=['unapprove', 'unfree'], filters=Filters.chat_type.groups)
@@ -78,7 +72,7 @@ def disapprove(update: Update, context: CallbackContext):
         member = chat.get_member(user_id)
     except BadRequest:
         return ""
-    if member.status == "administrator" or member.status == "creator":
+    if member.status in ["administrator", "creator"]:
         message.reply_text("This user is an admin, they can't be unapproved.")
         return ""
     if not sql.is_approved(message.chat_id, user_id):
@@ -87,13 +81,7 @@ def disapprove(update: Update, context: CallbackContext):
     sql.disapprove(message.chat_id, user_id)
     message.reply_text(
         f"{member.user['first_name']} is no longer approved in {chat_title}.")
-    log_message = (
-        f"<b>{html.escape(chat.title)}:</b>\n"
-        f"#UNAPPROVED\n"
-        f"<b>Admin:</b> {mention_html(user.id, user.first_name)}\n"
-        f"<b>User:</b> {mention_html(member.user.id, member.user.first_name)}")
-
-    return log_message
+    return f"<b>{html.escape(chat.title)}:</b>\n#UNAPPROVED\n<b>Admin:</b> {mention_html(user.id, user.first_name)}\n<b>User:</b> {mention_html(member.user.id, member.user.first_name)}"
 
 
 @rencmd(command='approved', filters=Filters.chat_type.groups)

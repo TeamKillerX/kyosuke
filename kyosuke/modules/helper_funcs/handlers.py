@@ -84,17 +84,16 @@ class CustomCommandHandler(tg.CommandHandler):
                     message.bot.username
                 )  # in case the command was sent without a username
 
-                if not (
-                    command[0].lower() in self.command
-                    and command[1].lower() == message.bot.username.lower()
+                if (
+                    command[0].lower() not in self.command
+                    or command[1].lower() != message.bot.username.lower()
                 ):
                     return None
 
                 if SpamChecker.check_user(user_id):
                     return None
 
-                filter_result = self.filters(update)
-                if filter_result:
+                if filter_result := self.filters(update):
                     return args, filter_result
                 else:
                     return False

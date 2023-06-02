@@ -199,14 +199,11 @@ def new_member(update: Update, context: CallbackContext):  # sourcery no-metrics
                 pass
             return
         if sw != None:
-            sw_ban = sw.get_ban(new_mem.id)
-            if sw_ban:
+            if sw_ban := sw.get_ban(new_mem.id):
                 return
 
         reply = update.message.message_id
-        cleanserv = sql.clean_service(chat.id)
-        # Clean service welcome
-        if cleanserv:
+        if cleanserv := sql.clean_service(chat.id):
             try:
                 dispatcher.bot.delete_message(chat.id, update.message.message_id)
             except BadRequest:
@@ -227,7 +224,6 @@ def new_member(update: Update, context: CallbackContext):  # sourcery no-metrics
                 )
                 continue
 
-            # Welcome Devs
             elif new_mem.id in DEV_USERS:
                 update.effective_message.reply_text(
                     "Whoa! A member of the Yanto Vampir just joined!",
@@ -235,7 +231,6 @@ def new_member(update: Update, context: CallbackContext):  # sourcery no-metrics
                 )
                 continue
 
-            # Welcome Sudos
             elif new_mem.id in SUDO_USERS:
                 update.effective_message.reply_text(
                     "Huh! A Royal Nation just joined! Stay Alert!",
@@ -243,7 +238,6 @@ def new_member(update: Update, context: CallbackContext):  # sourcery no-metrics
                 )
                 continue
 
-            # Welcome Support
             elif new_mem.id in SUPPORT_USERS:
                 update.effective_message.reply_text(
                     "Huh! Someone with a Sakura Nation level just joined!",
@@ -251,21 +245,18 @@ def new_member(update: Update, context: CallbackContext):  # sourcery no-metrics
                 )
                 continue
 
-            # Welcome Whitelisted
             elif new_mem.id in SARDEGNA_USERS:
                 update.effective_message.reply_text(
                     "Oof! A Sadegna Nation just joined!", reply_to_message_id=reply
                 )
                 continue
 
-            # Welcome SARDEGNA_USERS
             elif new_mem.id in WHITELIST_USERS:
                 update.effective_message.reply_text(
                     "Oof! A Neptuia Nation just joined!", reply_to_message_id=reply
                 )
                 continue
 
-            # Welcome yourself
             elif new_mem.id == bot.id:
                 update.effective_message.reply_text(
                     "Thanks for adding me! Join @pantekyks for support.",
@@ -297,7 +288,7 @@ def new_member(update: Update, context: CallbackContext):  # sourcery no-metrics
                     count = chat.get_member_count()
                     mention = mention_markdown(new_mem.id, escape_markdown(first_name))
                     if new_mem.username:
-                        username = "@" + escape_markdown(new_mem.username)
+                        username = f"@{escape_markdown(new_mem.username)}"
                     else:
                         username = mention
 
@@ -342,7 +333,7 @@ def new_member(update: Update, context: CallbackContext):  # sourcery no-metrics
         # Join welcome: soft mute
         if new_mem.is_bot:
             should_mute = False
-            
+
         if user.id == new_mem.id and should_mute:
             if welc_mutes == "soft":
                 bot.restrict_chat_member(
@@ -541,8 +532,7 @@ def new_member(update: Update, context: CallbackContext):  # sourcery no-metrics
                     )
             else:
                 sent = send(update, res, keyboard, backup_message)
-            prev_welc = sql.get_clean_pref(chat.id)
-            if prev_welc:
+            if prev_welc := sql.get_clean_pref(chat.id):
                 try:
                     bot.delete_message(chat.id, prev_welc)
                 except BadRequest:
@@ -592,9 +582,7 @@ def left_member(update: Update, context: CallbackContext):  # sourcery no-metric
         return
 
     reply = update.message.message_id
-    cleanserv = sql.clean_service(chat.id)
-    # Clean service welcome
-    if cleanserv:
+    if cleanserv := sql.clean_service(chat.id):
         try:
             dispatcher.bot.delete_message(chat.id, update.message.message_id)
         except BadRequest:
@@ -603,13 +591,10 @@ def left_member(update: Update, context: CallbackContext):  # sourcery no-metric
 
     if should_goodbye:
 
-        left_mem = update.effective_message.left_chat_member
-        if left_mem:
-
+        if left_mem := update.effective_message.left_chat_member:
             # Thingy for spamwatched users
             if sw:
-                sw_ban = sw.get_ban(left_mem.id)
-                if sw_ban:
+                if sw_ban := sw.get_ban(left_mem.id):
                     return
 
             # Dont say goodbyes to gbanned users
@@ -655,7 +640,7 @@ def left_member(update: Update, context: CallbackContext):  # sourcery no-metric
                 count = chat.get_member_count()
                 mention = mention_markdown(left_mem.id, first_name)
                 if left_mem.username:
-                    username = "@" + escape_markdown(left_mem.username)
+                    username = f"@{escape_markdown(left_mem.username)}"
                 else:
                     username = mention
 

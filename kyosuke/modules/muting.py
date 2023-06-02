@@ -57,9 +57,7 @@ def mute(update: Update, context: CallbackContext) -> str:
     message = update.effective_message
 
     user_id, reason = extract_user_and_text(message, args)
-    reply = check_user(user_id, bot, update)
-
-    if reply:
+    if reply := check_user(user_id, bot, update):
         message.reply_text(reply)
         return ""
 
@@ -81,23 +79,22 @@ def mute(update: Update, context: CallbackContext) -> str:
         bot.restrict_chat_member(chat.id, user_id, chat_permissions)
         bot.sendMessage(
             chat.id,
-            "{} was muted by {} in <b>{}</b>\n<b>Id</b>: [<code>{}</code>]\n<b>Reason</b>: <code>{}</code>".format(
-                mention_html(member.user.id, member.user.first_name), mention_html(user.id, user.first_name),
-                message.chat.title, member.user.id, reason
-            ),
+            f"{mention_html(member.user.id, member.user.first_name)} was muted by {mention_html(user.id, user.first_name)} in <b>{message.chat.title}</b>\n<b>Id</b>: [<code>{member.user.id}</code>]\n<b>Reason</b>: <code>{reason}</code>",
             reply_markup=InlineKeyboardMarkup(
                 [
                     [
                         InlineKeyboardButton(
-                            text="How to use ?", url=f"https://t.me/KillerXSupport/12958"
-                        ),
+                            text="How to use ?",
+                            url="https://t.me/KillerXSupport/12958",
+                        )
                     ],
                     [
                         InlineKeyboardButton(
-                        "📝 Read the rules", url="t.me/{}?start={}".format(dispatcher.bot.username, chat.id)
-                        ),
-                    ]
-                 ]
+                            "📝 Read the rules",
+                            url=f"t.me/{dispatcher.bot.username}?start={chat.id}",
+                        )
+                    ],
+                ]
             ),
             parse_mode=ParseMode.HTML,
         )
@@ -160,10 +157,7 @@ def unmute(update: Update, context: CallbackContext) -> str:
             pass
         bot.sendMessage(
             chat.id,
-            "{} was unmuted by {} in <b>{}</b>\n<b>Id</b>: [<code>{}</code>]\n<b>Reason</b>: <code>{}</code>".format(
-                mention_html(member.user.id, member.user.first_name), mention_html(user.id, user.first_name),
-                message.chat.title, member.user.id, reason
-            ),
+            f"{mention_html(member.user.id, member.user.first_name)} was unmuted by {mention_html(user.id, user.first_name)} in <b>{message.chat.title}</b>\n<b>Id</b>: [<code>{member.user.id}</code>]\n<b>Reason</b>: <code>{reason}</code>",
             parse_mode=ParseMode.HTML,
         )
         return (
@@ -189,9 +183,7 @@ def temp_mute(update: Update, context: CallbackContext) -> str:
     message = update.effective_message
 
     user_id, reason = extract_user_and_text(message, args)
-    reply = check_user(user_id, bot, update)
-
-    if reply:
+    if reply := check_user(user_id, bot, update):
         message.reply_text(reply)
         return ""
 
