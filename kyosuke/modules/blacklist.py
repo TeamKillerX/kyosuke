@@ -1,13 +1,22 @@
 import html
 import re
-from telegram import ParseMode, Update, ChatPermissions, InlineKeyboardMarkup, InlineKeyboardButton
+from telegram import (
+    ParseMode,
+    Update,
+    ChatPermissions,
+    InlineKeyboardMarkup,
+    InlineKeyboardButton,
+)
 from telegram.error import BadRequest
 from telegram.ext import Filters, CallbackContext
 from telegram.utils.helpers import mention_html
 from kyosuke.modules.sql.approve_sql import is_approved
 import kyosuke.modules.sql.blacklist_sql as sql
 from kyosuke import log, dispatcher
-from kyosuke.modules.helper_funcs.chat_status import user_admin as u_admin, user_not_admin
+from kyosuke.modules.helper_funcs.chat_status import (
+    user_admin as u_admin,
+    user_not_admin,
+)
 from kyosuke.modules.helper_funcs.extraction import extract_text
 from kyosuke.modules.helper_funcs.misc import split_message
 from kyosuke.modules.log_channel import loggable
@@ -20,7 +29,12 @@ from ..modules.helper_funcs.anonymous import user_admin, AdminPerms
 
 BLACKLIST_GROUP = -3
 
-@rencmd(command=["blacklist", "blacklists", "blocklist", "blocklists"], pass_args=True, admin_ok=True)
+
+@rencmd(
+    command=["blacklist", "blacklists", "blocklist", "blocklists"],
+    pass_args=True,
+    admin_ok=True,
+)
 @u_admin
 @typing_action
 def blacklist(update, context):
@@ -47,14 +61,11 @@ def blacklist(update, context):
             filter_list += f"<code>{html.escape(trigger)}</code>\n"
     else:
         for trigger in all_blacklisted:
-            filter_list += f" - <code>{html.escape(trigger)}</code>\n"    
+            filter_list += f" - <code>{html.escape(trigger)}</code>\n"
 
     split_text = split_message(filter_list)
     for text in split_text:
-        if (
-            filter_list
-            == f"Current blacklisted words in <b>{chat_name}</b>:\n"
-        ):
+        if filter_list == f"Current blacklisted words in <b>{chat_name}</b>:\n":
             send_message(
                 update.effective_message,
                 f"No blacklisted words in <b>{chat_name}</b>!",
@@ -62,6 +73,7 @@ def blacklist(update, context):
             )
             return
         send_message(update.effective_message, text, parse_mode=ParseMode.HTML)
+
 
 @rencmd(command=["addblacklist", "addblocklist"], pass_args=True)
 @user_admin(AdminPerms.CAN_DELETE_MESSAGES)
@@ -86,11 +98,7 @@ def add_blacklist(update, context):
     if len(words) > 1:
         text = words[1]
         to_blacklist = list(
-            {
-                trigger.strip()
-                for trigger in text.split("\n")
-                if trigger.strip()
-            }
+            {trigger.strip() for trigger in text.split("\n") if trigger.strip()}
         )
 
         for trigger in to_blacklist:
@@ -116,6 +124,7 @@ def add_blacklist(update, context):
             "Tell me which words you would like to add in blacklist.",
         )
 
+
 @rencmd(command=["unblacklist", "unblocklist", "rmblacklist"], pass_args=True)
 @user_admin(AdminPerms.CAN_DELETE_MESSAGES)
 @typing_action
@@ -139,11 +148,7 @@ def unblacklist(update, context):
     if len(words) > 1:
         text = words[1]
         to_unblacklist = list(
-            {
-                trigger.strip()
-                for trigger in text.split("\n")
-                if trigger.strip()
-            }
+            {trigger.strip() for trigger in text.split("\n") if trigger.strip()}
         )
 
         successful = 0
@@ -191,6 +196,7 @@ def unblacklist(update, context):
             update.effective_message,
             "Tell me which words you would like to remove from blacklist!",
         )
+
 
 @rencmd(command=["blacklistmode", "blocklistmode"], pass_args=True)
 @loggable
@@ -313,8 +319,13 @@ def findall(p, s):
         i = s.find(p, i + 1)
 
 
-
-@renmsg(((Filters.text | Filters.command | Filters.sticker | Filters.photo) & Filters.chat_type.groups), group=BLACKLIST_GROUP)
+@renmsg(
+    (
+        (Filters.text | Filters.command | Filters.sticker | Filters.photo)
+        & Filters.chat_type.groups
+    ),
+    group=BLACKLIST_GROUP,
+)
 @user_not_admin
 def del_blacklist(update, context):  # sourcery no-metrics
     chat = update.effective_chat
@@ -423,17 +434,20 @@ def __chat_settings__(chat_id, user_id):
 def __stats__():
     return f"• {sql.num_blacklist_filters()} blacklist triggers, across {sql.num_blacklist_filter_chats()} chats."
 
+
 def kontol_blacklist_help(update: Update, context: CallbackContext):
     update.effective_message.reply_text(
         gs(update.effective_chat.id, "blacklist_help"),
         parse_mode=ParseMode.HTML,
     )
 
+
 def kontol_tikelblk_help(update: Update, context: CallbackContext):
     update.effective_message.reply_text(
         gs(update.effective_chat.id, "tikelblk_help"),
         parse_mode=ParseMode.HTML,
     )
+
 
 @rencallback(pattern=r"kontol_help_")
 def kontol_help(update: Update, context: CallbackContext):
@@ -448,24 +462,35 @@ def kontol_help(update: Update, context: CallbackContext):
         text=help_text,
         parse_mode=ParseMode.HTML,
         reply_markup=InlineKeyboardMarkup(
-            [[InlineKeyboardButton(text="🔙", callback_data=f"help_module({__mod_name__.lower()})"),
-            InlineKeyboardButton(text='Report Error', url='https://t.me/pantekyks')]]
+            [
+                [
+                    InlineKeyboardButton(
+                        text="🔙", callback_data=f"help_module({__mod_name__.lower()})"
+                    ),
+                    InlineKeyboardButton(
+                        text="Report Error", url="https://t.me/pantekyks"
+                    ),
+                ]
+            ]
         ),
     )
     bot.answer_callback_query(query.id)
-
 
 
 __mod_name__ = "Blacklists"
 
 from kyosuke.modules.language import gs
 
+
 def get_help(chat):
-    return [gs(chat, "blak_help"),
-    [
-        InlineKeyboardButton(text="Sticker Blacklist", callback_data="kontol_help_tikelblk"
-        ),
-        InlineKeyboardButton(text="Blacklist", callback_data="kontol_help_blacklist"
-        )
+    return [
+        gs(chat, "blak_help"),
+        [
+            InlineKeyboardButton(
+                text="Sticker Blacklist", callback_data="kontol_help_tikelblk"
+            ),
+            InlineKeyboardButton(
+                text="Blacklist", callback_data="kontol_help_blacklist"
+            ),
+        ],
     ]
-]

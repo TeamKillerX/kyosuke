@@ -40,9 +40,7 @@ def is_approved(chat_id, user_id):
 
 def disapprove(chat_id, user_id):
     with APPROVE_INSERTION_LOCK:
-        if disapprove_user := SESSION.query(Approvals).get(
-            (str(chat_id), user_id)
-        ):
+        if disapprove_user := SESSION.query(Approvals).get((str(chat_id), user_id)):
             SESSION.delete(disapprove_user)
             SESSION.commit()
             return True
@@ -53,8 +51,11 @@ def disapprove(chat_id, user_id):
 
 def list_approved(chat_id):
     try:
-        return (SESSION.query(Approvals).filter(
-            Approvals.chat_id == str(chat_id)).order_by(
-                Approvals.user_id.asc()).all())
+        return (
+            SESSION.query(Approvals)
+            .filter(Approvals.chat_id == str(chat_id))
+            .order_by(Approvals.user_id.asc())
+            .all()
+        )
     finally:
         SESSION.close()

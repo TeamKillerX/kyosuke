@@ -145,9 +145,7 @@ def add_warn_filter(chat_id, keyword, reply):
 
 def remove_warn_filter(chat_id, keyword):
     with WARN_FILTER_INSERTION_LOCK:
-        if warn_filt := SESSION.query(WarnFilters).get(
-            (str(chat_id), keyword)
-        ):
+        if warn_filt := SESSION.query(WarnFilters).get((str(chat_id), keyword)):
             if keyword in WARN_FILTERS.get(str(chat_id), []):  # sanity check
                 WARN_FILTERS.get(str(chat_id), []).remove(keyword)
 

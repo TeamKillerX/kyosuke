@@ -12,6 +12,7 @@ import kyosuke.modules.sql.connection_sql as sql
 from .. import dispatcher, SUDO_USERS, DEV_USERS
 from .helper_funcs import admin_status
 from .helper_funcs.alternate import send_message, typing_action
+
 user_admin_check = admin_status.user_admin_check
 AdminPerms = admin_status.AdminPerms
 
@@ -19,7 +20,6 @@ AdminPerms = admin_status.AdminPerms
 @typing_action
 @user_admin_check(AdminPerms.CAN_CHANGE_INFO)
 def allow_connections(update, context):
-
     chat = update.effective_chat
     if chat.type != chat.PRIVATE:
         args = context.args
@@ -61,9 +61,9 @@ def allow_connections(update, context):
             update.effective_message, "This command is for group only. Not in PM!"
         )
 
+
 @typing_action
 def connection_chat(update, context):
-
     chat = update.effective_chat
     user = update.effective_user
 
@@ -83,9 +83,10 @@ def connection_chat(update, context):
     else:
         message = "You are currently not connected in any group.\n"
     send_message(update.effective_message, message, parse_mode="markdown")
+
+
 @typing_action
 def connect_chat(update, context):  # sourcery no-metrics
-
     chat = update.effective_chat
     user = update.effective_user
     if update.effective_chat.type == "private":
@@ -149,11 +150,11 @@ def connect_chat(update, context):  # sourcery no-metrics
                 ]
             else:
                 buttons = []
-            if conn := connected(
-                context.bot, update, chat, user.id, need_admin=False
-            ):
+            if conn := connected(context.bot, update, chat, user.id, need_admin=False):
                 connectedchat = dispatcher.bot.getChat(conn)
-                text = f"You are currently connected to *{connectedchat.title}* (`{conn}`)"
+                text = (
+                    f"You are currently connected to *{connectedchat.title}* (`{conn}`)"
+                )
                 buttons.append(
                     InlineKeyboardButton(
                         text="🔌 Disconnect", callback_data="connect_disconnect"
@@ -224,8 +225,9 @@ def connect_chat(update, context):  # sourcery no-metrics
             send_message(
                 update.effective_message, "Connection to this chat is not allowed!"
             )
-def disconnect_chat(update, context):
 
+
+def disconnect_chat(update, context):
     if update.effective_chat.type == "private":
         if disconnection_status := sql.disconnect(
             update.effective_message.from_user.id
@@ -243,7 +245,6 @@ def connected(bot: Bot, update: Update, chat, user_id, need_admin=True):
     user = update.effective_user
 
     if chat.type == chat.PRIVATE and sql.get_connected_chat(user_id):
-
         conn_id = sql.get_connected_chat(user_id).chat_id
         getstatusadmin = bot.get_chat_member(
             conn_id, update.effective_message.from_user.id
@@ -293,8 +294,8 @@ CONN_HELP = """
  • Export and Imports of chat backup.
  • More in future!"""
 
-def help_connect_chat(update, context):
 
+def help_connect_chat(update, context):
     args = context.args
 
     if update.effective_message.chat.type != "private":
@@ -305,7 +306,6 @@ def help_connect_chat(update, context):
 
 
 def connect_button(update, context):
-
     query = update.callback_query
     chat = update.effective_chat
     user = update.effective_user
@@ -323,9 +323,7 @@ def connect_button(update, context):
         isallow = sql.allow_connect_to_chat(target_chat)
 
         if (isadmin) or (isallow and ismember) or (user.id in SUDO_USERS):
-            if connection_status := sql.connect(
-                query.from_user.id, target_chat
-            ):
+            if connection_status := sql.connect(query.from_user.id, target_chat):
                 conn_chat = dispatcher.bot.getChat(
                     connected(context.bot, update, chat, user.id, need_admin=False)
                 )
@@ -358,8 +356,11 @@ def connect_button(update, context):
 
 
 from .language import gs
+
+
 def get_help(chat):
     return gs(chat, "connections_help")
+
 
 CONNECT_CHAT_HANDLER = CommandHandler("connect", connect_chat, pass_args=True)
 CONNECTION_CHAT_HANDLER = CommandHandler("connection", connection_chat, run_async=True)

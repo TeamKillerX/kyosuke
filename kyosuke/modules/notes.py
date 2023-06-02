@@ -73,7 +73,9 @@ def get(update, context, notename, show_none=True, no_format=False):
             if JOIN_LOGGER:
                 try:
                     bot.forward_message(
-                        chat_id=chat_id, from_chat_id=JOIN_LOGGER, message_id=note.value,
+                        chat_id=chat_id,
+                        from_chat_id=JOIN_LOGGER,
+                        message_id=note.value,
                     )
                 except BadRequest as excp:
                     if excp.message != "Message to forward not found":
@@ -86,7 +88,9 @@ def get(update, context, notename, show_none=True, no_format=False):
             else:
                 try:
                     bot.forward_message(
-                        chat_id=chat_id, from_chat_id=chat_id, message_id=note.value,
+                        chat_id=chat_id,
+                        from_chat_id=chat_id,
+                        message_id=note.value,
                     )
                 except BadRequest as excp:
                     if excp.message != "Message to forward not found":
@@ -120,8 +124,7 @@ def get(update, context, notename, show_none=True, no_format=False):
                 text = text.format(
                     first=escape_markdown(message.from_user.first_name),
                     last=escape_markdown(
-                        message.from_user.last_name
-                        or message.from_user.first_name,
+                        message.from_user.last_name or message.from_user.first_name,
                     ),
                     fullname=escape_markdown(
                         " ".join(
@@ -209,7 +212,9 @@ def get(update, context, notename, show_none=True, no_format=False):
                         "This note could not be sent, as it is incorrectly formatted. Ask in @YorkTownEagleUnion if you can't figure out why!"
                     )
                     log.exception(
-                        "Could not parse message #%s in chat %s", notename, str(note_chat_id)
+                        "Could not parse message #%s in chat %s",
+                        notename,
+                        str(note_chat_id),
                     )
                     log.warning("Message was: %s", str(note.value))
         return
@@ -230,7 +235,6 @@ def cmd_get(update: Update, context: CallbackContext):
         update.effective_message.reply_text("Get rekt")
 
 
-
 @renmsg((Filters.regex(r"^#[^\s]+")), group=-14)
 @typing_action
 @connection_status
@@ -239,7 +243,6 @@ def hash_get(update: Update, context: CallbackContext):
     fst_word = message.split()[0]
     no_hash = fst_word[1:].lower()
     get(update, context, no_hash, show_none=False)
-
 
 
 @renmsg((Filters.regex(r"^/\d+$")), group=-16)
@@ -257,6 +260,7 @@ def slash_get(update: Update, context: CallbackContext):
     except IndexError:
         update.effective_message.reply_text("Wrong Note ID 😾")
 
+
 @rencmd(command="save", pass_args=True)
 @typing_action
 @user_admin(AdminPerms.CAN_CHANGE_INFO)
@@ -264,7 +268,7 @@ def slash_get(update: Update, context: CallbackContext):
 def save(update: Update, context: CallbackContext):
     chat_id = update.effective_chat.id
     msg = update.effective_message  # type: Optional[Message]
-    m = msg.text.split(' ', 1)
+    m = msg.text.split(" ", 1)
     if len(m) == 1:
         msg.reply_text("Provide something to save.")
         return
@@ -299,6 +303,7 @@ def save(update: Update, context: CallbackContext):
                 "then saving that new message? Thanks!"
             )
         return
+
 
 @rencmd(command="clear", pass_args=True)
 @typing_action
@@ -512,7 +517,9 @@ def __chat_settings__(chat_id, user_id):
     notes = sql.get_all_chat_notes(chat_id)
     return f"There are `{len(notes)}` notes in this chat."
 
+
 from kyosuke.modules.language import gs
+
 
 def get_help(chat):
     return gs(chat, "notes_help")

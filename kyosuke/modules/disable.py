@@ -12,6 +12,7 @@ from kyosuke.modules.helper_funcs.alternate import send_message, typing_action
 from kyosuke.modules.connection import connected
 from kyosuke.modules.language import gs
 
+
 def get_help(chat):
     return gs(chat, "disable_help")
 
@@ -73,9 +74,9 @@ if is_module_loaded(FILENAME):
                         # disabled, admincmd, user admin
                         if sql.is_command_disabled(chat.id, command[0].lower()):
                             # check if command was disabled
-                            is_disabled = command[
-                                0
-                            ] in ADMIN_CMDS and is_user_admin(update, user.id)
+                            is_disabled = command[0] in ADMIN_CMDS and is_user_admin(
+                                update, user.id
+                            )
                             return None if not is_disabled else (args, filter_result)
                         return args, filter_result
                     else:
@@ -123,7 +124,9 @@ if is_module_loaded(FILENAME):
             if disable_cmd in set(DISABLE_CMDS + DISABLE_OTHER):
                 sql.disable_command(chat.id, disable_cmd)
                 if conn:
-                    text = f"Disabled the use of `{disable_cmd}` command in *{chat_name}*!"
+                    text = (
+                        f"Disabled the use of `{disable_cmd}` command in *{chat_name}*!"
+                    )
                 else:
                     text = f"Disabled the use of `{disable_cmd}` command!"
                 send_message(
@@ -167,7 +170,9 @@ if is_module_loaded(FILENAME):
 
             if sql.enable_command(chat.id, enable_cmd):
                 if conn:
-                    text = f"Enabled the use of `{enable_cmd}` command in *{chat_name}*!"
+                    text = (
+                        f"Enabled the use of `{enable_cmd}` command in *{chat_name}*!"
+                    )
                 else:
                     text = f"Enabled the use of `{enable_cmd}` command!"
                 send_message(

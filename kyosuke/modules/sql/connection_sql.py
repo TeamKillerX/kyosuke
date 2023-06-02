@@ -18,7 +18,9 @@ class ChatAccessConnectionSettings(BASE):
         self.allow_connect_to_chat = str(allow_connect_to_chat)
 
     def __repr__(self):
-        return f"<Chat access settings ({self.chat_id}) is {self.allow_connect_to_chat}>"
+        return (
+            f"<Chat access settings ({self.chat_id}) is {self.allow_connect_to_chat}>"
+        )
 
 
 class Connection(BASE):
@@ -150,9 +152,7 @@ def add_history_conn(user_id, chat_id, chat_name):
                         HISTORY_CONNECT[int(user_id)].pop(x)
         else:
             HISTORY_CONNECT[int(user_id)] = {}
-        if delold := SESSION.query(ConnectionHistory).get(
-            (int(user_id), str(chat_id))
-        ):
+        if delold := SESSION.query(ConnectionHistory).get((int(user_id), str(chat_id))):
             SESSION.delete(delold)
         history = ConnectionHistory(int(user_id), str(chat_id), chat_name, conn_time)
         SESSION.add(history)

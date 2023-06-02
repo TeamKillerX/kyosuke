@@ -2,9 +2,25 @@ import html
 import re
 from typing import Optional, Union
 
-from telegram import Bot, Chat, ChatMember, Message, Update, ParseMode, User, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import (
+    Bot,
+    Chat,
+    ChatMember,
+    Message,
+    Update,
+    ParseMode,
+    User,
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+)
 from telegram.error import BadRequest
-from telegram.ext import CallbackContext, Filters, CommandHandler, run_async, CallbackQueryHandler
+from telegram.ext import (
+    CallbackContext,
+    Filters,
+    CommandHandler,
+    run_async,
+    CallbackQueryHandler,
+)
 from telegram.utils.helpers import mention_html
 from kyosuke.modules.helper_funcs.alternate import typing_action
 from kyosuke import (
@@ -27,7 +43,11 @@ from kyosuke.modules.helper_funcs.chat_status import (
     is_user_in_chat,
 )
 
-from kyosuke.modules.helper_funcs.admin_status import user_admin_check, bot_admin_check, AdminPerms
+from kyosuke.modules.helper_funcs.admin_status import (
+    user_admin_check,
+    bot_admin_check,
+    AdminPerms,
+)
 
 from kyosuke.modules.helper_funcs.extraction import extract_user_and_text
 from kyosuke.modules.helper_funcs.string_handling import extract_time
@@ -35,6 +55,7 @@ from kyosuke.modules.log_channel import loggable, gloggable
 from .helper_funcs.decorators import rencmd, renmsg, rencallback
 
 from ..modules.helper_funcs.anonymous import user_admin, AdminPerms
+
 
 def ban_user(bot: Bot, who: ChatMember, where_chat_id, reason=None) -> Union[str, bool]:
     try:
@@ -47,12 +68,17 @@ def ban_user(bot: Bot, who: ChatMember, where_chat_id, reason=None) -> Union[str
             return False
 
     return (
-        f"<b>User:</b> <a href=\"tg://user?id={who.user.id}\">{html.escape(who.user.first_name)}</a>"
+        f'<b>User:</b> <a href="tg://user?id={who.user.id}">{html.escape(who.user.first_name)}</a>'
         f"<b>User ID:</b> {who.user.id}"
-        "" if reason is None else f"<b>Reason:</b> {reason}"
+        ""
+        if reason is None
+        else f"<b>Reason:</b> {reason}"
     )
 
-def unban_user(bot: Bot, who: ChatMember, where_chat_id, reason=None) -> Union[str, bool]:
+
+def unban_user(
+    bot: Bot, who: ChatMember, where_chat_id, reason=None
+) -> Union[str, bool]:
     try:
         bot.unbanChatMember(where_chat_id, who.user.id)
     except BadRequest as excp:
@@ -63,19 +89,23 @@ def unban_user(bot: Bot, who: ChatMember, where_chat_id, reason=None) -> Union[s
             return False
 
     return (
-        f"<b>User:</b> <a href=\"tg://user?id={who.user.id}\">{html.escape(who.user.first_name)}</a>"
+        f'<b>User:</b> <a href="tg://user?id={who.user.id}">{html.escape(who.user.first_name)}</a>'
         f"<b>User ID:</b> {who.user.id}"
-        "" if reason is None else f"<b>Reason:</b> {reason}"
+        ""
+        if reason is None
+        else f"<b>Reason:</b> {reason}"
     )
 
 
-@rencmd(command='ban', pass_args=True)
+@rencmd(command="ban", pass_args=True)
 @connection_status
 @bot_admin
 @typing_action
 @user_admin(AdminPerms.CAN_RESTRICT_MEMBERS)
 @loggable
-def ban(update: Update, context: CallbackContext) -> Optional[str]:  # sourcery no-metrics
+def ban(
+    update: Update, context: CallbackContext
+) -> Optional[str]:  # sourcery no-metrics
     chat = update.effective_chat  # type: Optional[Chat]
     user = update.effective_user  # type: Optional[User]
     message = update.effective_message  # type: Optional[Message]
@@ -191,7 +221,7 @@ def ban(update: Update, context: CallbackContext) -> Optional[str]:  # sourcery 
     return ""
 
 
-@rencmd(command='tban', pass_args=True)
+@rencmd(command="tban", pass_args=True)
 @connection_status
 @bot_admin
 @typing_action
@@ -214,7 +244,7 @@ def temp_ban(update: Update, context: CallbackContext) -> str:
     try:
         member = chat.get_member(user_id)
     except BadRequest as excp:
-        if excp.message != 'User not found':
+        if excp.message != "User not found":
             raise
         message.reply_text("I can't seem to find this user.")
         return log_message
@@ -280,7 +310,7 @@ def temp_ban(update: Update, context: CallbackContext) -> str:
     return log_message
 
 
-@rencmd(command=['kick', 'kik', 'punch'], pass_args=True)
+@rencmd(command=["kick", "kik", "punch"], pass_args=True)
 @connection_status
 @bot_admin
 @typing_action
@@ -301,7 +331,7 @@ def kick(update: Update, context: CallbackContext) -> str:
     try:
         member = chat.get_member(user_id)
     except BadRequest as excp:
-        if excp.message != 'User not found':
+        if excp.message != "User not found":
             raise
         message.reply_text("I can't seem to find this user.")
         return log_message
@@ -338,7 +368,11 @@ def kick(update: Update, context: CallbackContext) -> str:
     return log_message
 
 
-@rencmd(command=['kickme' 'kikme', 'kontol', 'memek'], pass_args=True, filters=Filters.chat_type.groups)
+@rencmd(
+    command=["kickme" "kikme", "kontol", "memek"],
+    pass_args=True,
+    filters=Filters.chat_type.groups,
+)
 @bot_admin
 @can_restrict
 @typing_action
@@ -353,7 +387,7 @@ def kickme(update: Update, context: CallbackContext):
         update.effective_message.reply_text("Huh? I can't :/")
 
 
-@rencmd(command='unban', pass_args=True)
+@rencmd(command="unban", pass_args=True)
 @connection_status
 @bot_admin
 @typing_action
@@ -391,7 +425,7 @@ def unban(update: Update, context: CallbackContext) -> Optional[str]:
     try:
         member = chat.get_member(user_id)
     except BadRequest as excp:
-        if excp.message != 'User not found':
+        if excp.message != "User not found":
             raise
         message.reply_text("I can't seem to find this user.")
         return log_message
@@ -423,7 +457,7 @@ def unban(update: Update, context: CallbackContext) -> Optional[str]:
     return log
 
 
-@rencmd(command='selfunban', pass_args=True)
+@rencmd(command="selfunban", pass_args=True)
 @connection_status
 @bot_admin
 @can_restrict
@@ -460,11 +494,13 @@ def selfunban(context: CallbackContext, update: Update) -> Optional[str]:
 
     return f"<b>{html.escape(chat.title)}:</b>\n#UNBANNED\n<b>User:</b> {mention_html(member.user.id, member.user.first_name)}"
 
+
 def hacker_pub_help(update: Update, context: CallbackContext):
     update.effective_message.reply_text(
         gs(update.effective_chat.id, "pub_help"),
         parse_mode=ParseMode.HTML,
     )
+
 
 @rencallback(pattern=r"hacker_help_")
 def hacker_help(update: Update, context: CallbackContext):
@@ -477,23 +513,19 @@ def hacker_help(update: Update, context: CallbackContext):
         text=help_text,
         parse_mode=ParseMode.HTML,
         reply_markup=InlineKeyboardMarkup(
-            [
-                [
-                    InlineKeyboardButton(text='Report Error', url='https://t.me/pantekyks')
-                ]
-            ]
+            [[InlineKeyboardButton(text="Report Error", url="https://t.me/pantekyks")]]
         ),
     )
     bot.answer_callback_query(query.id)
+
 
 from kyosuke.modules.language import gs
 
 __mod_name__ = "Bans"
 
+
 def get_help(chat):
-    return [gs(chat, "bans_help"),
-    [
-        InlineKeyboardButton(text="Examples", callback_data="hacker_help_pub"
-        )
+    return [
+        gs(chat, "bans_help"),
+        [InlineKeyboardButton(text="Examples", callback_data="hacker_help_pub")],
     ]
-]

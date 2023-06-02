@@ -21,6 +21,7 @@ from kyosuke.modules.log_channel import loggable
 from kyosuke.modules.sql.approve_sql import is_approved
 from kyosuke.modules.warn import warn
 
+
 @rencmd(command="blsticker", admin_ok=True)
 @user_admin(AdminPerms.CAN_RESTRICT_MEMBERS)
 def blackliststicker(update: Update, context: CallbackContext):
@@ -64,6 +65,7 @@ def blackliststicker(update: Update, context: CallbackContext):
             )
             return
     send_message(update.effective_message, text, parse_mode=ParseMode.HTML)
+
 
 @rencmd(command="addblsticker", pass_args=True)
 @user_admin(AdminPerms.CAN_RESTRICT_MEMBERS)
@@ -149,6 +151,7 @@ def add_blackliststicker(update: Update, context: CallbackContext):
             "Tell me what stickers you want to add to the blacklist.",
         )
 
+
 @rencmd(command=["unblsticker", "rmblsticker"], pass_args=True)
 @user_admin(AdminPerms.CAN_RESTRICT_MEMBERS)
 def unblackliststicker(update: Update, context: CallbackContext):
@@ -189,7 +192,8 @@ def unblackliststicker(update: Update, context: CallbackContext):
                 )
             else:
                 send_message(
-                    update.effective_message, "This sticker is not on the blacklist...!",
+                    update.effective_message,
+                    "This sticker is not on the blacklist...!",
                 )
 
         elif successful == len(to_unblacklist):
@@ -234,6 +238,7 @@ def unblackliststicker(update: Update, context: CallbackContext):
             "Tell me what stickers you want to add to the blacklist.",
         )
 
+
 @rencmd(command="blstickermode", pass_args=True)
 @loggable
 @user_admin(AdminPerms.CAN_RESTRICT_MEMBERS)
@@ -251,7 +256,8 @@ def blacklist_mode(update: Update, context: CallbackContext):
     else:
         if update.effective_message.chat.type == "private":
             send_message(
-                update.effective_message, "You can do this command in groups, not PM",
+                update.effective_message,
+                "You can do this command in groups, not PM",
             )
             return ""
         chat = update.effective_chat
@@ -304,7 +310,9 @@ def blacklist_mode(update: Update, context: CallbackContext):
         if conn:
             text = f"Blacklist sticker mode changed, users will be `{settypeblacklist}` at *{chat_name}*!"
         else:
-            text = f"Blacklist sticker mode changed, users will be `{settypeblacklist}`!"
+            text = (
+                f"Blacklist sticker mode changed, users will be `{settypeblacklist}`!"
+            )
         send_message(update.effective_message, text, parse_mode="markdown")
         return f"<b>{html.escape(chat.title)}:</b>\n<b>Admin:</b> {mention_html(user.id, user.first_name)}\nChanged sticker blacklist mode. users will be {settypeblacklist}."
     else:
@@ -331,6 +339,7 @@ def blacklist_mode(update: Update, context: CallbackContext):
             text = f"Blacklist sticker mode is currently set to *{settypeblacklist}*."
         send_message(update.effective_message, text, parse_mode=ParseMode.MARKDOWN)
     return ""
+
 
 @renmsg((Filters.sticker & Filters.chat_type.groups), run_async=True)
 @user_not_admin

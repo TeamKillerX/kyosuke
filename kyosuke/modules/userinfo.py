@@ -10,7 +10,7 @@ from kyosuke.modules.helper_funcs.decorators import rencmd
 from kyosuke.modules.helper_funcs.extraction import extract_user
 
 
-@rencmd(command='me', pass_args=True)
+@rencmd(command="me", pass_args=True)
 def about_me(update: Update, context: CallbackContext):
     args = context.args
     bot = context.bot
@@ -34,7 +34,7 @@ def about_me(update: Update, context: CallbackContext):
         )
 
 
-@rencmd(command='setme')
+@rencmd(command="setme")
 def set_about_me(update: Update, context: CallbackContext):
     bot = context.bot
     message = update.effective_message
@@ -64,7 +64,7 @@ def set_about_me(update: Update, context: CallbackContext):
             )
 
 
-@rencmd(command='bio', pass_args=True)
+@rencmd(command="bio", pass_args=True)
 def about_bio(update: Update, context: CallbackContext):
     args = context.args
     bot = context.bot
@@ -100,9 +100,9 @@ def about_bio(update: Update, context: CallbackContext):
         sender_id = update.effective_user.id
 
         if (
-                user_id == bot.id
-                and sender_id not in SUDO_USERS
-                and sender_id not in DEV_USERS
+            user_id == bot.id
+            and sender_id not in SUDO_USERS
+            and sender_id not in DEV_USERS
         ):
             message.reply_text(
                 "Erm... yeah, I only trust sudo users or developers to set my bio."
@@ -116,7 +116,9 @@ def about_bio(update: Update, context: CallbackContext):
         if len(bio) == 2:
             if len(bio[1]) < MAX_MESSAGE_LENGTH // 4:
                 sql.set_user_bio(user_id, bio[1])
-                message.reply_text(f"Updated {repl_message.from_user.first_name}'s bio!")
+                message.reply_text(
+                    f"Updated {repl_message.from_user.first_name}'s bio!"
+                )
             else:
                 message.reply_text(
                     f"A bio needs to be under {MAX_MESSAGE_LENGTH // 4} characters! You tried to set {len(bio[1])}."
@@ -125,7 +127,7 @@ def about_bio(update: Update, context: CallbackContext):
         message.reply_text("Reply to someone's message to set their bio!")
 
 
-@rencmd(command='setbio')
+@rencmd(command="setbio")
 def set_about_bio(update: Update, context: CallbackContext):
     message = update.effective_message
     sender_id = update.effective_user.id
@@ -160,7 +162,9 @@ def set_about_bio(update: Update, context: CallbackContext):
         if len(bio) == 2:
             if len(bio[1]) < MAX_MESSAGE_LENGTH // 4:
                 sql.set_user_bio(user_id, bio[1])
-                message.reply_text(f"Updated {repl_message.from_user.first_name}'s bio!")
+                message.reply_text(
+                    f"Updated {repl_message.from_user.first_name}'s bio!"
+                )
             else:
                 message.reply_text(
                     f"Bio needs to be under {MAX_MESSAGE_LENGTH // 4} characters! You tried to set {len(bio[1])}."

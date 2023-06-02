@@ -19,7 +19,7 @@ from .helper_funcs.admin_status import (
     user_admin_check,
     bot_admin_check,
     AdminPerms,
-    user_is_admin
+    user_is_admin,
 )
 
 
@@ -31,12 +31,16 @@ def mention_html_chat(chat_id: Union[int, str], name: str) -> str:
 
 
 @renmsg(
-        (Filters.all
-         & Filters.chat_type.groups
-         & ~Filters.status_update
-         & ~Filters.update.edited_message
-         & ~Filters.sender_chat.channel),
-        run_async=True, group=FLOOD_GROUP)
+    (
+        Filters.all
+        & Filters.chat_type.groups
+        & ~Filters.status_update
+        & ~Filters.update.edited_message
+        & ~Filters.sender_chat.channel
+    ),
+    run_async=True,
+    group=FLOOD_GROUP,
+)
 @connection_status
 @loggable
 def check_flood(update: Update, context: CallbackContext) -> Optional[str]:
@@ -49,7 +53,7 @@ def check_flood(update: Update, context: CallbackContext) -> Optional[str]:
         return ""
 
     # ignore admins and whitelists
-    if user_is_admin(update, user.id, channels = True) or user.id in WHITELIST_USERS:
+    if user_is_admin(update, user.id, channels=True) or user.id in WHITELIST_USERS:
         sql.update_flood(chat.id, None)
         return ""
 
@@ -109,12 +113,16 @@ def check_flood(update: Update, context: CallbackContext) -> Optional[str]:
 
 
 @renmsg(
-        (Filters.all
-         & ~Filters.status_update
-         & Filters.chat_type.groups
-         & ~Filters.update.edited_message
-         & Filters.sender_chat.channel),
-        run_async=True, group=-6)
+    (
+        Filters.all
+        & ~Filters.status_update
+        & Filters.chat_type.groups
+        & ~Filters.update.edited_message
+        & Filters.sender_chat.channel
+    ),
+    run_async=True,
+    group=-6,
+)
 @connection_status
 @loggable
 def check_channel_flood(update: Update, _: CallbackContext) -> Optional[str]:
@@ -154,7 +162,7 @@ def check_channel_flood(update: Update, _: CallbackContext) -> Optional[str]:
 
 @rencallback(pattern=r"unmute_flooder")
 @bot_admin_check(AdminPerms.CAN_RESTRICT_MEMBERS)
-@user_admin_check(AdminPerms.CAN_RESTRICT_MEMBERS, allow_mods = True, noreply = True)
+@user_admin_check(AdminPerms.CAN_RESTRICT_MEMBERS, allow_mods=True, noreply=True)
 @loggable
 def flood_button(update: Update, context: CallbackContext) -> str:
     bot = context.bot
@@ -187,10 +195,10 @@ def flood_button(update: Update, context: CallbackContext) -> str:
             )
 
 
-@rencmd(command='setflood', pass_args=True)
+@rencmd(command="setflood", pass_args=True)
 @connection_status
 @bot_admin_check(AdminPerms.CAN_RESTRICT_MEMBERS)
-@user_admin_check(AdminPerms.CAN_CHANGE_INFO, allow_mods = True)
+@user_admin_check(AdminPerms.CAN_CHANGE_INFO, allow_mods=True)
 @loggable
 def set_flood(update, context) -> Optional[str]:  # sourcery no-metrics
     chat = update.effective_chat  # type: Optional[Chat]
@@ -222,14 +230,16 @@ def set_flood(update, context) -> Optional[str]:  # sourcery no-metrics
 
             else:
                 sql.set_flood(chat.id, amount)
-                message.reply_text(f"Successfully updated anti-flood limit to {amount}!")
+                message.reply_text(
+                    f"Successfully updated anti-flood limit to {amount}!"
+                )
                 return f"<b>{html.escape(chat_name)}:</b>\n#SETFLOOD\n<b>Admin:</b> {mention_html(user.id, user.first_name)}\nSet antiflood to <code>{amount}</code>."
 
         else:
             message.reply_text("Invalid argument please use a number, 'off' or 'no'")
     else:
         message.reply_text(
-                "Use `/setflood number` to enable anti-flood.\nOr use `/setflood off` to disable antiflood!",
+            "Use `/setflood number` to enable anti-flood.\nOr use `/setflood off` to disable antiflood!",
             parse_mode="markdown",
         )
     return ""
@@ -256,7 +266,7 @@ def flood(update: Update, _: CallbackContext):
 
 @rencmd(command=["setfloodmode", "floodmode"], pass_args=True)
 @bot_admin_check(AdminPerms.CAN_RESTRICT_MEMBERS)
-@user_admin_check(AdminPerms.CAN_CHANGE_INFO, allow_mods = True)
+@user_admin_check(AdminPerms.CAN_CHANGE_INFO, allow_mods=True)
 @connection_status
 @loggable
 def set_flood_mode(update, context) -> Optional[str]:  # sourcery no-metrics
@@ -276,13 +286,21 @@ def set_flood_mode(update, context) -> Optional[str]:  # sourcery no-metrics
             sql.set_flood_strength(chat.id, 3, "0")
         elif args[0].lower() == "tban":
             if len(args) == 1:
-                send_message(update.effective_message, tflood_help_msg.format("tban"), parse_mode="markdown")
+                send_message(
+                    update.effective_message,
+                    tflood_help_msg.format("tban"),
+                    parse_mode="markdown",
+                )
                 return
             settypeflood = f"tban for {args[1]}"
             sql.set_flood_strength(chat.id, 4, str(args[1]))
         elif args[0].lower() == "tmute":
             if len(args) == 1:
-                send_message(update.effective_message, tflood_help_msg.format("tmute"), parse_mode="markdown")
+                send_message(
+                    update.effective_message,
+                    tflood_help_msg.format("tmute"),
+                    parse_mode="markdown",
+                )
                 return
             settypeflood = f"tmute for {args[1]}"
             sql.set_flood_strength(chat.id, 5, str(args[1]))
@@ -322,9 +340,11 @@ def get_flood_type(chat_id: int) -> str:
     return settypeflood
 
 
-tflood_help_msg = ("It looks like you tried to set time value for antiflood but you didn't specified time; "
-                   "Try, `/setfloodmode {} <timevalue>`."
-                   "Examples of time value: 4m = 4 minutes, 3h = 3 hours, 6d = 6 days, 5w = 5 weeks.")
+tflood_help_msg = (
+    "It looks like you tried to set time value for antiflood but you didn't specified time; "
+    "Try, `/setfloodmode {} <timevalue>`."
+    "Examples of time value: 4m = 4 minutes, 3h = 3 hours, 6d = 6 days, 5w = 5 weeks."
+)
 
 
 def __migrate__(old_chat_id, new_chat_id):

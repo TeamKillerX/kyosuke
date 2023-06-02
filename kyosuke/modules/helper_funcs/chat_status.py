@@ -46,12 +46,15 @@ def is_user_admin(update: Update, user_id: int, member: ChatMember = None) -> bo
     chat = update.effective_chat
     msg = update.effective_message
     if (
-            chat.type == "private"
-            or user_id in SUDO_USERS
-            or user_id in DEV_USERS
-            or chat.all_members_are_administrators
-            or (msg.reply_to_message and msg.reply_to_message.sender_chat is not None and
-                msg.reply_to_message.sender_chat.type != "channel")
+        chat.type == "private"
+        or user_id in SUDO_USERS
+        or user_id in DEV_USERS
+        or chat.all_members_are_administrators
+        or (
+            msg.reply_to_message
+            and msg.reply_to_message.sender_chat is not None
+            and msg.reply_to_message.sender_chat.type != "channel"
+        )
     ):
         return True
 
@@ -84,18 +87,23 @@ def can_delete(chat: Chat, bot_id: int) -> bool:
     return chat.get_member(bot_id).can_delete_messages
 
 
-def is_user_ban_protected(update: Update, user_id: int, member: ChatMember = None) -> bool:
+def is_user_ban_protected(
+    update: Update, user_id: int, member: ChatMember = None
+) -> bool:
     chat = update.effective_chat
     msg = update.effective_message
     if (
-            chat.type == "private"
-            or user_id in SUDO_USERS
-            or user_id in DEV_USERS
-            or user_id in WHITELIST_USERS
-            or user_id in SARDEGNA_USERS
-            or chat.all_members_are_administrators
-            or (msg.reply_to_message and msg.reply_to_message.sender_chat is not None
-                and msg.reply_to_message.sender_chat.type != "channel")
+        chat.type == "private"
+        or user_id in SUDO_USERS
+        or user_id in DEV_USERS
+        or user_id in WHITELIST_USERS
+        or user_id in SARDEGNA_USERS
+        or chat.all_members_are_administrators
+        or (
+            msg.reply_to_message
+            and msg.reply_to_message.sender_chat is not None
+            and msg.reply_to_message.sender_chat.type != "channel"
+        )
     ):
         return True
 
@@ -179,7 +187,7 @@ def support_plus(func):
 def whitelist_plus(func):
     @wraps(func)
     def is_whitelist_plus_func(
-            update: Update, context: CallbackContext, *args, **kwargs
+        update: Update, context: CallbackContext, *args, **kwargs
     ):
         # bot = context.bot
         user = update.effective_user
@@ -222,7 +230,7 @@ def user_admin(func):
 def user_admin_no_reply(func):
     @wraps(func)
     def is_not_admin_no_reply(
-            update: Update, context: CallbackContext, *args, **kwargs
+        update: Update, context: CallbackContext, *args, **kwargs
     ):
         # bot = context.bot
         user = update.effective_user
@@ -293,8 +301,10 @@ def bot_can_delete(func):
         if update_chat_title == message_chat_title:
             cant_delete = "I can't delete messages here!\nMake sure I'm admin and can delete other user's messages."
         else:
-            cant_delete = f"I can't delete messages in <b>{update_chat_title}</b>!\nMake sure I'm admin and can " \
-                          f"delete other user's messages there. "
+            cant_delete = (
+                f"I can't delete messages in <b>{update_chat_title}</b>!\nMake sure I'm admin and can "
+                f"delete other user's messages there. "
+            )
 
         if can_delete(chat, bot.id):
             return func(update, context, *args, **kwargs)
@@ -317,8 +327,10 @@ def can_pin(func):
                 "I can't pin messages here!\nMake sure I'm admin and can pin messages."
             )
         else:
-            cant_pin = f"I can't pin messages in <b>{update_chat_title}</b>!\nMake sure I'm admin and can pin " \
-                       f"messages there. "
+            cant_pin = (
+                f"I can't pin messages in <b>{update_chat_title}</b>!\nMake sure I'm admin and can pin "
+                f"messages there. "
+            )
 
         if chat.get_member(bot.id).can_pin_messages:
             return func(update, context, *args, **kwargs)
@@ -363,8 +375,10 @@ def can_restrict(func):
         if update_chat_title == message_chat_title:
             cant_restrict = "I can't restrict people here!\nMake sure I'm admin and can restrict users."
         else:
-            cant_restrict = f"I can't restrict people in <b>{update_chat_title}</b>!\nMake sure I'm admin there and " \
-                            f"can restrict users. "
+            cant_restrict = (
+                f"I can't restrict people in <b>{update_chat_title}</b>!\nMake sure I'm admin there and "
+                f"can restrict users. "
+            )
 
         if chat.get_member(bot.id).can_restrict_members:
             return func(update, context, *args, **kwargs)

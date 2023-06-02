@@ -1,6 +1,12 @@
 import telegram.ext as tg
 from telegram import Update
-from kyosuke import DEV_USERS, SUDO_USERS, WHITELIST_USERS, SUPPORT_USERS, SARDEGNA_USERS
+from kyosuke import (
+    DEV_USERS,
+    SUDO_USERS,
+    WHITELIST_USERS,
+    SUPPORT_USERS,
+    SARDEGNA_USERS,
+)
 from pyrate_limiter import (
     BucketFullException,
     Duration,

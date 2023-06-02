@@ -14,12 +14,15 @@ from platform import python_version as kontol
 from pykillerx import *
 
 from telegram import Update, ParseMode, InlineKeyboardMarkup, InlineKeyboardButton
-from telegram.error import (TelegramError, Unauthorized, BadRequest,
-                            TimedOut, ChatMigrated, NetworkError)
-from telegram.ext import (
-    CallbackContext,
-    Filters
+from telegram.error import (
+    TelegramError,
+    Unauthorized,
+    BadRequest,
+    TimedOut,
+    ChatMigrated,
+    NetworkError,
 )
+from telegram.ext import CallbackContext, Filters
 from telegram.ext.dispatcher import DispatcherHandlerStop
 from telegram.utils.helpers import escape_markdown
 
@@ -36,8 +39,9 @@ from kyosuke import (
     log,
     telethn,
     pbot,
-    KyosukeINIT
+    KyosukeINIT,
 )
+
 # needed to dynamically load modules
 # NOTE: Module order is not guaranteed, specify that in the config file!
 from kyosuke.modules import ALL_MODULES
@@ -47,7 +51,9 @@ from kyosuke.modules.helper_funcs.misc import paginate_modules
 from kyosuke.modules.language import gs
 from .modules.helper_funcs.readable_time import *
 from base64 import b64decode as who
-from pykillerx.helper import CHANNEL as developer 
+from pykillerx.helper import CHANNEL as developer
+
+
 def get_readable_time(seconds: int) -> str:
     count = 0
     ping_time = ""
@@ -71,6 +77,7 @@ def get_readable_time(seconds: int) -> str:
     ping_time += ":".join(time_list)
 
     return ping_time
+
 
 IMPORTED = {}
 MIGRATEABLE = []
@@ -122,7 +129,7 @@ for module_name in ALL_MODULES:
 # do not async
 def send_help(chat_id, text, keyboard=None):
     if not keyboard:
-        kb = paginate_modules(0, HELPABLE, "help")        
+        kb = paginate_modules(0, HELPABLE, "help")
         keyboard = InlineKeyboardMarkup(kb)
     dispatcher.bot.send_message(
         chat_id=chat_id, text=text, parse_mode=ParseMode.MARKDOWN, reply_markup=keyboard
@@ -141,9 +148,9 @@ def start(update: Update, context: CallbackContext):  # sourcery no-metrics
     chat = update.effective_chat
     args = context.args
 
-    if hasattr(update, 'callback_query'):
+    if hasattr(update, "callback_query"):
         query = update.callback_query
-        if hasattr(query, 'id'):
+        if hasattr(query, "id"):
             first_name = update.effective_user.first_name
             update.effective_message.edit_text(
                 text=gs(chat.id, "pm_start_text").format(
@@ -199,11 +206,9 @@ def start(update: Update, context: CallbackContext):  # sourcery no-metrics
                 text = f"Here is the help for the *{HELPABLE[mod].__mod_name__}* module:\n{help_text}"
                 help_buttons.append(
                     [
+                        InlineKeyboardButton(text="🔙", callback_data="help_back"),
                         InlineKeyboardButton(
-                            text="🔙", callback_data="help_back"
-                        ),
-                        InlineKeyboardButton(
-                            text='Support', url='https://t.me/pantekys'
+                            text="Support", url="https://t.me/pantekys"
                         ),
                     ]
                 )
@@ -267,9 +272,9 @@ def start(update: Update, context: CallbackContext):  # sourcery no-metrics
     else:
         update.effective_message.reply_text(gs(chat.id, "grp_start_text"))
 
-    if hasattr(update, 'callback_query'):
+    if hasattr(update, "callback_query"):
         query = update.callback_query
-        if hasattr(query, 'id'):
+        if hasattr(query, "id"):
             context.bot.answer_callback_query(query.id)
 
 
@@ -278,16 +283,16 @@ def error_callback(_, context: CallbackContext):
     try:
         raise context.error
     except (Unauthorized, BadRequest):
-        pass       
+        pass
     except TimedOut:
-        pass        
+        pass
     except NetworkError:
-        pass        
+        pass
     except ChatMigrated:
-        pass        
+        pass
     except TelegramError:
         pass
-        
+
 
 @rencallback(pattern=r"help_")
 def help_button(update: Update, context: CallbackContext):
@@ -312,9 +317,7 @@ def help_button(update: Update, context: CallbackContext):
             help_buttons.append(
                 [
                     InlineKeyboardButton(text="🔙", callback_data="help_back"),
-                    InlineKeyboardButton(
-                        text='Support', url='https://t.me/pantekys'
-                    ),
+                    InlineKeyboardButton(text="Support", url="https://t.me/pantekys"),
                 ]
             )
             query.message.edit_text(
@@ -342,7 +345,7 @@ def help_button(update: Update, context: CallbackContext):
             )
 
         elif back_match:
-            kb = paginate_modules(0, HELPABLE, "help")            
+            kb = paginate_modules(0, HELPABLE, "help")
             query.message.edit_text(
                 text=gs(chat.id, "pm_help_text"),
                 parse_mode=ParseMode.MARKDOWN,
@@ -362,7 +365,6 @@ def get_help(update: Update, context: CallbackContext):
 
     # ONLY send help in PM
     if chat.type != chat.PRIVATE:
-
         if len(args) >= 2:
             if any(args[1].lower() == x for x in HELPABLE):
                 module = args[1].lower()
@@ -416,9 +418,7 @@ def get_help(update: Update, context: CallbackContext):
             help_buttons.append(
                 [
                     InlineKeyboardButton(text="🔙", callback_data="help_back"),
-                    InlineKeyboardButton(
-                        text='Support', url='https://t.me/pantekys'
-                    ),
+                    InlineKeyboardButton(text="Support", url="https://t.me/pantekys"),
                 ]
             )
             send_help(
@@ -545,11 +545,11 @@ def settings_button(update: Update, context: CallbackContext):
         query.message.delete()
     except BadRequest as excp:
         if excp.message not in [
-            'Message is not modified',
-            'Query_id_invalid',
+            "Message is not modified",
+            "Query_id_invalid",
             "Message can't be deleted",
         ]:
-            log.exception('Exception in settings buttons. %s', str(query.data))
+            log.exception("Exception in settings buttons. %s", str(query.data))
 
 
 @rencmd(command="settings")
@@ -604,7 +604,8 @@ def migrate_chats(update: Update, context: CallbackContext):
 
     log.info("Successfully migrated!")
     raise DispatcherHandlerStop
-    
+
+
 loop = asyncio.get_event_loop()
 
 
@@ -620,16 +621,18 @@ def main():
             updater.bot.set_webhook(url=URL + TOKEN)
 
     else:
-        log.info(f"Kyosuke started, Using long polling. | BOT: [@{dispatcher.bot.username}]")
+        log.info(
+            f"Kyosuke started, Using long polling. | BOT: [@{dispatcher.bot.username}]"
+        )
         KyosukeINIT.bot_id = dispatcher.bot.id
         KyosukeINIT.bot_username = dispatcher.bot.username
         KyosukeINIT.bot_name = dispatcher.bot.first_name
         updater.start_polling(
-          timeout=15,
-          read_latency=4,
-          allowed_updates=Update.ALL_TYPES,
-          drop_pending_updates=KInit.DROP_UPDATES,
-       )
+            timeout=15,
+            read_latency=4,
+            allowed_updates=Update.ALL_TYPES,
+            drop_pending_updates=KInit.DROP_UPDATES,
+        )
 
     if len(argv) in {1, 3, 4}:
         telethn.run_until_disconnected()

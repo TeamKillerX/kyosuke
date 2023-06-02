@@ -3,7 +3,13 @@ from html import escape
 from typing import Optional
 
 import telegram
-from telegram import Chat, ParseMode, InlineKeyboardMarkup, Message, InlineKeyboardButton
+from telegram import (
+    Chat,
+    ParseMode,
+    InlineKeyboardMarkup,
+    Message,
+    InlineKeyboardButton,
+)
 from telegram.error import BadRequest
 from telegram.ext import (
     DispatcherHandlerStop,
@@ -47,7 +53,7 @@ ENUM_FUNC_MAP = {
 
 
 @typing_action
-@rencmd(command='filters', admin_ok=True)
+@rencmd(command="filters", admin_ok=True)
 def list_handlers(update, context):
     chat = update.effective_chat
     user = update.effective_user
@@ -92,7 +98,9 @@ def list_handlers(update, context):
 
 
 # NOT ASYNC BECAUSE DISPATCHER HANDLER RAISED
-@rencmd(command=["filter", "addfilter"], run_async=False, filters=Filters.chat_type.groups)
+@rencmd(
+    command=["filter", "addfilter"], run_async=False, filters=Filters.chat_type.groups
+)
 @user_admin(AdminPerms.CAN_CHANGE_INFO)
 @typing_action
 def filters(update, context):  # sourcery no-metrics
@@ -432,9 +440,7 @@ def reply_filter(update, context):  # sourcery no-metrics
                             )
                         except BadRequest as excp:
                             log.exception(f"Error in filters: {excp.message}")
-                        log.warning(
-                            "Message %s could not be parsed", str(filt.reply)
-                        )
+                        log.warning("Message %s could not be parsed", str(filt.reply))
                         log.exception(
                             "Could not parse filter %s in chat %s",
                             str(filt.keyword),
@@ -442,7 +448,7 @@ def reply_filter(update, context):  # sourcery no-metrics
                         )
 
             else:
-                    # LEGACY - all new filters will have has_markdown set to True.
+                # LEGACY - all new filters will have has_markdown set to True.
                 try:
                     send_message(update.effective_message, filt.reply)
                 except BadRequest as excp:
@@ -561,9 +567,12 @@ def __chat_settings__(chat_id, _):
     cust_filters = sql.get_chat_triggers(chat_id)
     return f"There are `{len(cust_filters)}` custom filters here."
 
+
 from kyosuke.modules.language import gs
+
 
 def get_help(chat):
     return gs(chat, "cust_filters_help")
+
 
 __mod_name__ = "Filters"
