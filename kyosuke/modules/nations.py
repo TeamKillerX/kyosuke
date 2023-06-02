@@ -22,6 +22,7 @@ from kyosuke.modules.log_channel import gloggable
 from kyosuke.modules.sql import nation_sql as sql
 from kyosuke.modules.helper_funcs.decorators import rencmd
 
+
 def check_user_id(user_id: int, context: CallbackContext) -> Optional[str]:
     bot = context.bot
     if not user_id:
@@ -33,7 +34,8 @@ def check_user_id(user_id: int, context: CallbackContext) -> Optional[str]:
     else:
         return None
 
-@rencmd(command='addsudo')
+
+@rencmd(command="addsudo")
 @dev_plus
 @gloggable
 def addsudo(update: Update, context: CallbackContext) -> str:
@@ -45,8 +47,7 @@ def addsudo(update: Update, context: CallbackContext) -> str:
     user_member = bot.getChat(user_id)
     rt = ""
 
-    reply = check_user_id(user_id, bot)
-    if reply:
+    if reply := check_user_id(user_id, bot):
         message.reply_text(reply)
         return ""
 
@@ -67,10 +68,7 @@ def addsudo(update: Update, context: CallbackContext) -> str:
     SUDO_USERS.append(user_id)
 
     update.effective_message.reply_text(
-        rt
-        + "\nSuccessfully promoted {} to Sudo!".format(
-            user_member.first_name
-        )
+        f"{rt}\nSuccessfully promoted {user_member.first_name} to Sudo!"
     )
 
     log_message = (
@@ -80,12 +78,12 @@ def addsudo(update: Update, context: CallbackContext) -> str:
     )
 
     if chat.type != "private":
-        log_message = f"<b>{html.escape(chat.title)}:</b>\n" + log_message
+        log_message = f"<b>{html.escape(chat.title)}:</b>\n{log_message}"
 
     return log_message
 
 
-@rencmd(command='addsupport')
+@rencmd(command="addsupport")
 @sudo_plus
 @gloggable
 def addsupport(
@@ -100,8 +98,7 @@ def addsupport(
     user_member = bot.getChat(user_id)
     rt = ""
 
-    reply = check_user_id(user_id, bot)
-    if reply:
+    if reply := check_user_id(user_id, bot):
         message.reply_text(reply)
         return ""
 
@@ -121,7 +118,7 @@ def addsupport(
     SUPPORT_USERS.append(user_id)
 
     update.effective_message.reply_text(
-        rt + f"\n{user_member.first_name} was added as a Support user!"
+        f"{rt}\n{user_member.first_name} was added as a Support user!"
     )
 
     log_message = (
@@ -131,12 +128,12 @@ def addsupport(
     )
 
     if chat.type != "private":
-        log_message = f"<b>{html.escape(chat.title)}:</b>\n" + log_message
+        log_message = f"<b>{html.escape(chat.title)}:</b>\n{log_message}"
 
     return log_message
 
 
-@rencmd(command='addwhitelist')
+@rencmd(command="addwhitelist")
 @sudo_plus
 @gloggable
 def addwhitelist(update: Update, context: CallbackContext) -> str:
@@ -148,8 +145,7 @@ def addwhitelist(update: Update, context: CallbackContext) -> str:
     user_member = bot.getChat(user_id)
     rt = ""
 
-    reply = check_user_id(user_id, bot)
-    if reply:
+    if reply := check_user_id(user_id, bot):
         message.reply_text(reply)
         return ""
 
@@ -169,7 +165,7 @@ def addwhitelist(update: Update, context: CallbackContext) -> str:
     WHITELIST_USERS.append(user_id)
 
     update.effective_message.reply_text(
-        rt + f"\nSuccessfully promoted {user_member.first_name} to a Whitelist user!"
+        f"{rt}\nSuccessfully promoted {user_member.first_name} to a Whitelist user!"
     )
 
     log_message = (
@@ -179,12 +175,12 @@ def addwhitelist(update: Update, context: CallbackContext) -> str:
     )
 
     if chat.type != "private":
-        log_message = f"<b>{html.escape(chat.title)}:</b>\n" + log_message
+        log_message = f"<b>{html.escape(chat.title)}:</b>\n{log_message}"
 
     return log_message
 
 
-@rencmd(command='addsardegna')
+@rencmd(command="addsardegna")
 @sudo_plus
 @gloggable
 def addsardegna(update: Update, context: CallbackContext) -> str:
@@ -196,8 +192,7 @@ def addsardegna(update: Update, context: CallbackContext) -> str:
     user_member = bot.getChat(user_id)
     rt = ""
 
-    reply = check_user_id(user_id, bot)
-    if reply:
+    if reply := check_user_id(user_id, bot):
         message.reply_text(reply)
         return ""
 
@@ -221,7 +216,7 @@ def addsardegna(update: Update, context: CallbackContext) -> str:
     SARDEGNA_USERS.append(user_id)
 
     update.effective_message.reply_text(
-        rt + f"\nSuccessfully promoted {user_member.first_name} to a Sardegna Nation!"
+        f"{rt}\nSuccessfully promoted {user_member.first_name} to a Sardegna Nation!"
     )
 
     log_message = (
@@ -231,7 +226,7 @@ def addsardegna(update: Update, context: CallbackContext) -> str:
     )
 
     if chat.type != "private":
-        log_message = f"<b>{html.escape(chat.title)}:</b>\n" + log_message
+        log_message = f"<b>{html.escape(chat.title)}:</b>\n{log_message}"
 
     return log_message
 
@@ -247,8 +242,7 @@ def removesudo(update: Update, context: CallbackContext) -> str:
     user_id = extract_user(message, args)
     user_member = bot.getChat(user_id)
 
-    reply = check_user_id(user_id, bot)
-    if reply:
+    if reply := check_user_id(user_id, bot):
         message.reply_text(reply)
         return ""
 
@@ -264,7 +258,7 @@ def removesudo(update: Update, context: CallbackContext) -> str:
         )
 
         if chat.type != "private":
-            log_message = "<b>{}:</b>\n".format(html.escape(chat.title)) + log_message
+            log_message = f"<b>{html.escape(chat.title)}:</b>\n{log_message}"
 
         return log_message
 
@@ -284,8 +278,7 @@ def removesupport(update: Update, context: CallbackContext) -> str:
     user_id = extract_user(message, args)
     user_member = bot.getChat(user_id)
 
-    reply = check_user_id(user_id, bot)
-    if reply:
+    if reply := check_user_id(user_id, bot):
         message.reply_text(reply)
         return ""
 
@@ -301,7 +294,7 @@ def removesupport(update: Update, context: CallbackContext) -> str:
         )
 
         if chat.type != "private":
-            log_message = f"<b>{html.escape(chat.title)}:</b>\n" + log_message
+            log_message = f"<b>{html.escape(chat.title)}:</b>\n{log_message}"
 
         return log_message
 
@@ -310,7 +303,7 @@ def removesupport(update: Update, context: CallbackContext) -> str:
         return ""
 
 
-@rencmd(command='removewhitelist')
+@rencmd(command="removewhitelist")
 @sudo_plus
 @gloggable
 def removewhitelist(update: Update, context: CallbackContext) -> str:
@@ -321,8 +314,7 @@ def removewhitelist(update: Update, context: CallbackContext) -> str:
     user_id = extract_user(message, args)
     user_member = bot.getChat(user_id)
 
-    reply = check_user_id(user_id, bot)
-    if reply:
+    if reply := check_user_id(user_id, bot):
         message.reply_text(reply)
         return ""
 
@@ -338,7 +330,7 @@ def removewhitelist(update: Update, context: CallbackContext) -> str:
         )
 
         if chat.type != "private":
-            log_message = f"<b>{html.escape(chat.title)}:</b>\n" + log_message
+            log_message = f"<b>{html.escape(chat.title)}:</b>\n{log_message}"
 
         return log_message
     else:
@@ -346,7 +338,7 @@ def removewhitelist(update: Update, context: CallbackContext) -> str:
         return ""
 
 
-@rencmd(command='removesardegna')
+@rencmd(command="removesardegna")
 @sudo_plus
 @gloggable
 def removesardegna(update: Update, context: CallbackContext) -> str:
@@ -357,8 +349,7 @@ def removesardegna(update: Update, context: CallbackContext) -> str:
     user_id = extract_user(message, args)
     user_member = bot.getChat(user_id)
 
-    reply = check_user_id(user_id, bot)
-    if reply:
+    if reply := check_user_id(user_id, bot):
         message.reply_text(reply)
         return ""
 
@@ -374,12 +365,13 @@ def removesardegna(update: Update, context: CallbackContext) -> str:
         )
 
         if chat.type != "private":
-            log_message = f"<b>{html.escape(chat.title)}:</b>\n" + log_message
+            log_message = f"<b>{html.escape(chat.title)}:</b>\n{log_message}"
 
         return log_message
     else:
         message.reply_text("This user is not a Sardegna Nation!")
         return ""
+
 
 # I added extra new lines
 nations = """ kyosuke has bot access levels we call as *"Nation Levels"*
@@ -400,7 +392,8 @@ def send_nations(update):
         nations, parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True
     )
 
-@rencmd(command='removesardegna')
+
+@rencmd(command="removesardegna")
 @whitelist_plus
 def whitelistlist(update: Update, context: CallbackContext):
     bot = context.bot
@@ -415,7 +408,8 @@ def whitelistlist(update: Update, context: CallbackContext):
             pass
     update.effective_message.reply_text(reply, parse_mode=ParseMode.HTML)
 
-@rencmd(command='sardegnas')
+
+@rencmd(command="sardegnas")
 @whitelist_plus
 def Sardegnalist(update: Update, context: CallbackContext):
     bot = context.bot
@@ -428,6 +422,7 @@ def Sardegnalist(update: Update, context: CallbackContext):
         except TelegramError:
             pass
     update.effective_message.reply_text(reply, parse_mode=ParseMode.HTML)
+
 
 @rencmd(command=["supportlist", "sakuras"])
 @whitelist_plus
@@ -442,6 +437,7 @@ def supportlist(update: Update, context: CallbackContext):
         except TelegramError:
             pass
     update.effective_message.reply_text(reply, parse_mode=ParseMode.HTML)
+
 
 @rencmd(command=["sudolist", "royals"])
 @whitelist_plus
@@ -458,7 +454,8 @@ def sudolist(update: Update, context: CallbackContext):
             pass
     update.effective_message.reply_text(reply, parse_mode=ParseMode.HTML)
 
-@rencmd(command='devlist')
+
+@rencmd(command="devlist")
 @whitelist_plus
 def devlist(update: Update, context: CallbackContext):
     bot = context.bot

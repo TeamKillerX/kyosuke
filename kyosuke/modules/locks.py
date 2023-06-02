@@ -39,23 +39,23 @@ LOCK_TYPES = {
     "url": Filters.entity(MessageEntity.URL)
     | Filters.caption_entity(MessageEntity.URL),
     "bots": Filters.status_update.new_chat_members,
-    "forward": Filters.forwarded & ~ Filters.is_automatic_forward,
+    "forward": Filters.forwarded & ~Filters.is_automatic_forward,
     "game": Filters.game,
     "location": Filters.location,
     "egame": Filters.dice,
     "rtl": "rtl",
     "button": "button",
     "inline": "inline",
-    "apk" : Filters.document.mime_type("application/vnd.android.package-archive"),
-    "doc" : Filters.document.mime_type("application/msword"),
-    "exe" : Filters.document.mime_type("application/x-ms-dos-executable"),
-    "gif" : Filters.document.mime_type("video/mp4"),
-    "jpg" : Filters.document.mime_type("image/jpeg"),
-    "mp3" : Filters.document.mime_type("audio/mpeg"),
-    "pdf" : Filters.document.mime_type("application/pdf"),
-    "txt" : Filters.document.mime_type("text/plain"),
-    "xml" : Filters.document.mime_type("application/xml"),
-    "zip" : Filters.document.mime_type("application/zip"),
+    "apk": Filters.document.mime_type("application/vnd.android.package-archive"),
+    "doc": Filters.document.mime_type("application/msword"),
+    "exe": Filters.document.mime_type("application/x-ms-dos-executable"),
+    "gif": Filters.document.mime_type("video/mp4"),
+    "jpg": Filters.document.mime_type("image/jpeg"),
+    "mp3": Filters.document.mime_type("audio/mpeg"),
+    "pdf": Filters.document.mime_type("application/pdf"),
+    "txt": Filters.document.mime_type("text/plain"),
+    "xml": Filters.document.mime_type("application/xml"),
+    "zip": Filters.document.mime_type("application/zip"),
 }
 
 LOCK_CHAT_RESTRICTION = {
@@ -141,17 +141,26 @@ def unrestr_members(
         except TelegramError:
             pass
 
-@rencmd(command='locktypes')
-def locktypes(update, context):
-    new_lock = InlineKeyboardMarkup([[InlineKeyboardButton("Support", url=f"https://t.me/pantekyks")]])
-    update.effective_message.reply_text(
-        "\n • ".join(["Locks available: "] + sorted(list(LOCK_TYPES) + list(LOCK_CHAT_RESTRICTION))), reply_markup=new_lock)
 
-@rencmd(command='lock', pass_args=True)
+@rencmd(command="locktypes")
+def locktypes(update, context):
+    new_lock = InlineKeyboardMarkup(
+        [[InlineKeyboardButton("Support", url="https://t.me/pantekyks")]]
+    )
+    update.effective_message.reply_text(
+        "\n • ".join(
+            ["Locks available: "]
+            + sorted(list(LOCK_TYPES) + list(LOCK_CHAT_RESTRICTION))
+        ),
+        reply_markup=new_lock,
+    )
+
+
+@rencmd(command="lock", pass_args=True)
 @connection_status
 @typing_action
 @bot_admin_check()
-@user_admin_check(AdminPerms.CAN_CHANGE_INFO, allow_mods = True)
+@user_admin_check(AdminPerms.CAN_CHANGE_INFO, allow_mods=True)
 @loggable
 def lock(update, context) -> str:  # sourcery no-metrics
     args = context.args
@@ -162,26 +171,16 @@ def lock(update, context) -> str:  # sourcery no-metrics
             ltype = args[0].lower()
             if ltype == "anonchannel":
                 text = "`anonchannel` is not a lock, please use `/antichannel on` to restrict channels"
-                send_message(update.effective_message, text, parse_mode = "markdown")
+                send_message(update.effective_message, text, parse_mode="markdown")
             elif ltype in LOCK_TYPES:
-
-                text = "Locked {} for non-admins!".format(ltype)
+                text = f"Locked {ltype} for non-admins!"
                 sql.update_lock(chat.id, ltype, locked=True)
                 send_message(update.effective_message, text, parse_mode="markdown")
 
-                return (
-                    "<b>{}:</b>"
-                    "\n#LOCK"
-                    "\n<b>Admin:</b> {}"
-                    "\nLocked <code>{}</code>.".format(
-                        html.escape(chat.title),
-                        mention_html(user.id, user.first_name),
-                        ltype,
-                    )
-                )
+                return f"<b>{html.escape(chat.title)}:</b>\n#LOCK\n<b>Admin:</b> {mention_html(user.id, user.first_name)}\nLocked <code>{ltype}</code>."
 
             elif ltype in LOCK_CHAT_RESTRICTION:
-                text = "Locked {} for all non-admins!".format(ltype)
+                text = f"Locked {ltype} for all non-admins!"
                 current_permission = context.bot.getChat(chat.id).permissions
                 context.bot.set_chat_permissions(
                     chat_id=chat.id,
@@ -192,16 +191,7 @@ def lock(update, context) -> str:  # sourcery no-metrics
                 )
 
                 send_message(update.effective_message, text, parse_mode="markdown")
-                return (
-                    "<b>{}:</b>"
-                    "\n#Permission_LOCK"
-                    "\n<b>Admin:</b> {}"
-                    "\nLocked <code>{}</code>.".format(
-                        html.escape(chat.title),
-                        mention_html(user.id, user.first_name),
-                        ltype,
-                    )
-                )
+                return f"<b>{html.escape(chat.title)}:</b>\n#Permission_LOCK\n<b>Admin:</b> {mention_html(user.id, user.first_name)}\nLocked <code>{ltype}</code>."
 
             else:
                 send_message(
@@ -219,7 +209,8 @@ def lock(update, context) -> str:  # sourcery no-metrics
 
     return ""
 
-@rencmd(command='unlock', pass_args=True)
+
+@rencmd(command="unlock", pass_args=True)
 @bot_admin_check()
 @typing_action
 @user_admin_check()
@@ -235,22 +226,13 @@ def unlock(update, context) -> str:  # sourcery no-metrics
                 text = "`anonchannel` is not a lock, please use `/antichannel off` to disable restricting channels"
                 send_message(update.effective_message, text, parse_mode="markdown")
             elif ltype in LOCK_TYPES:
-                text = "Unlocked {} for everyone!".format(ltype)
+                text = f"Unlocked {ltype} for everyone!"
                 sql.update_lock(chat.id, ltype, locked=False)
                 send_message(update.effective_message, text, parse_mode="markdown")
-                return (
-                    "<b>{}:</b>"
-                    "\n#UNLOCK"
-                    "\n<b>Admin:</b> {}"
-                    "\nUnlocked <code>{}</code>.".format(
-                        html.escape(chat.title),
-                        mention_html(user.id, user.first_name),
-                        ltype,
-                    )
-                )
+                return f"<b>{html.escape(chat.title)}:</b>\n#UNLOCK\n<b>Admin:</b> {mention_html(user.id, user.first_name)}\nUnlocked <code>{ltype}</code>."
 
             elif ltype in UNLOCK_CHAT_RESTRICTION:
-                text = "Unlocked {} for everyone!".format(ltype)
+                text = f"Unlocked {ltype} for everyone!"
 
                 current_permission = context.bot.getChat(chat.id).permissions
                 context.bot.set_chat_permissions(
@@ -263,16 +245,7 @@ def unlock(update, context) -> str:  # sourcery no-metrics
 
                 send_message(update.effective_message, text, parse_mode="markdown")
 
-                return (
-                    "<b>{}:</b>"
-                    "\n#UNLOCK"
-                    "\n<b>Admin:</b> {}"
-                    "\nUnlocked <code>{}</code>.".format(
-                        html.escape(chat.title),
-                        mention_html(user.id, user.first_name),
-                        ltype,
-                    )
-                )
+                return f"<b>{html.escape(chat.title)}:</b>\n#UNLOCK\n<b>Admin:</b> {mention_html(user.id, user.first_name)}\nUnlocked <code>{ltype}</code>."
             else:
                 send_message(
                     update.effective_message,
@@ -284,6 +257,7 @@ def unlock(update, context) -> str:  # sourcery no-metrics
 
     return ""
 
+
 @renmsg((Filters.all & Filters.chat_type.groups), group=PERM_GROUP)
 @user_not_admin_check
 def del_lockables(update, context):  # sourcery no-metrics
@@ -294,9 +268,11 @@ def del_lockables(update, context):  # sourcery no-metrics
         return
     for lockable, filter in LOCK_TYPES.items():
         if lockable == "rtl":
-            if sql.is_locked(chat.id, lockable) and bot_is_admin(chat, AdminPerms.CAN_DELETE_MESSAGES):
+            if sql.is_locked(chat.id, lockable) and bot_is_admin(
+                chat, AdminPerms.CAN_DELETE_MESSAGES
+            ):
                 if message.caption:
-                    check = ad.detect_alphabet(u"{}".format(message.caption))
+                    check = ad.detect_alphabet(f"{message.caption}")
                     if "ARABIC" in check:
                         try:
                             # replyyy = "This action is restricted to admins only!"
@@ -307,7 +283,7 @@ def del_lockables(update, context):  # sourcery no-metrics
                                 log.exception("ERROR in lockables")
                         break
                 if message.text:
-                    check = ad.detect_alphabet(u"{}".format(message.text))
+                    check = ad.detect_alphabet(f"{message.text}")
                     if "ARABIC" in check:
                         try:
                             message.delete()
@@ -339,7 +315,7 @@ def del_lockables(update, context):  # sourcery no-metrics
                 and message
                 and message.via_bot
             ):
-                try:               
+                try:
                     message.delete()
                 except BadRequest as excp:
                     if excp.message != "Message to delete not found":
@@ -370,7 +346,7 @@ def del_lockables(update, context):  # sourcery no-metrics
                         )
                         break
             else:
-                try:                 
+                try:
                     message.delete()
                 except BadRequest as excp:
                     if excp.message != "Message to delete not found":
@@ -383,57 +359,62 @@ def build_lock_message(chat_id):
     locks = sql.get_locks(chat_id)
     res = ""
     locklist = []
-    permslist = []
     if locks:
         res += "*" + "These are the current locks in this Chat:" + "*"
-        locklist.append("sticker = `{}`".format(locks.sticker))
-        locklist.append("audio = `{}`".format(locks.audio))
-        locklist.append("voice = `{}`".format(locks.voice))
-        locklist.append("document = `{}`".format(locks.document))
-        locklist.append("video = `{}`".format(locks.video))
-        locklist.append("contact = `{}`".format(locks.contact))
-        locklist.append("photo = `{}`".format(locks.photo))
-        locklist.append("gif = `{}`".format(locks.gif))
-        locklist.append("url = `{}`".format(locks.url))
-        locklist.append("bots = `{}`".format(locks.bots))
-        locklist.append("forward = `{}`".format(locks.forward))
-        locklist.append("game = `{}`".format(locks.game))
-        locklist.append("location = `{}`".format(locks.location))
-        locklist.append("rtl = `{}`".format(locks.rtl))
-        locklist.append("button = `{}`".format(locks.button))
-        locklist.append("egame = `{}`".format(locks.egame))
-        locklist.append("inline = `{}`".format(locks.inline))
-        locklist.append("apk = `{}`".format(locks.apk))
-        locklist.append("doc = `{}`".format(locks.doc))
-        locklist.append("exe = `{}`".format(locks.exe))
-        locklist.append("jpg = `{}`".format(locks.jpg))
-        locklist.append("mp3 = `{}`".format(locks.mp3))
-        locklist.append("pdf = `{}`".format(locks.pdf))
-        locklist.append("txt = `{}`".format(locks.txt))
-        locklist.append("xml = `{}`".format(locks.xml))
-        locklist.append("zip = `{}`".format(locks.zip))
+        locklist.extend(
+            (
+                f"sticker = `{locks.sticker}`",
+                f"audio = `{locks.audio}`",
+                f"voice = `{locks.voice}`",
+                f"document = `{locks.document}`",
+                f"video = `{locks.video}`",
+                f"contact = `{locks.contact}`",
+                f"photo = `{locks.photo}`",
+                f"gif = `{locks.gif}`",
+                f"url = `{locks.url}`",
+                f"bots = `{locks.bots}`",
+                f"forward = `{locks.forward}`",
+                f"game = `{locks.game}`",
+                f"location = `{locks.location}`",
+                f"rtl = `{locks.rtl}`",
+                f"button = `{locks.button}`",
+                f"egame = `{locks.egame}`",
+                f"inline = `{locks.inline}`",
+                f"apk = `{locks.apk}`",
+                f"doc = `{locks.doc}`",
+                f"exe = `{locks.exe}`",
+                f"jpg = `{locks.jpg}`",
+                f"mp3 = `{locks.mp3}`",
+                f"pdf = `{locks.pdf}`",
+                f"txt = `{locks.txt}`",
+                f"xml = `{locks.xml}`",
+                f"zip = `{locks.zip}`",
+            )
+        )
     permissions = dispatcher.bot.get_chat(chat_id).permissions
-    permslist.append("messages = `{}`".format(permissions.can_send_messages))
-    permslist.append("media = `{}`".format(permissions.can_send_media_messages))
-    permslist.append("poll = `{}`".format(permissions.can_send_polls))
-    permslist.append("other = `{}`".format(permissions.can_send_other_messages))
-    permslist.append("previews = `{}`".format(permissions.can_add_web_page_previews))
-    permslist.append("info = `{}`".format(permissions.can_change_info))
-    permslist.append("invite = `{}`".format(permissions.can_invite_users))
-    permslist.append("pin = `{}`".format(permissions.can_pin_messages))
-
+    permslist = [
+        f"messages = `{permissions.can_send_messages}`",
+        f"media = `{permissions.can_send_media_messages}`",
+        f"poll = `{permissions.can_send_polls}`",
+        f"other = `{permissions.can_send_other_messages}`",
+        f"previews = `{permissions.can_add_web_page_previews}`",
+        f"info = `{permissions.can_change_info}`",
+        f"invite = `{permissions.can_invite_users}`",
+        f"pin = `{permissions.can_pin_messages}`",
+    ]
     if locklist:
         # Ordering lock list
         locklist.sort()
         # Building lock list string
         for x in locklist:
-            res += "\n • {}".format(x)
+            res += f"\n • {x}"
     res += "\n\n*" + "These are the current chat permissions:" + "*"
     for x in permslist:
-        res += "\n • {}".format(x)
+        res += f"\n • {x}"
     return res
 
-@rencmd(command='locks')
+
+@rencmd(command="locks")
 @connection_status
 @user_admin_check(AdminPerms.CAN_CHANGE_INFO, allow_mods=True)
 @typing_action
@@ -441,7 +422,6 @@ def list_locks(update, _):
     chat = update.effective_chat  # type: Optional[Chat]
 
     res = build_lock_message(chat.id)
-
 
     send_message(update.effective_message, res, parse_mode=ParseMode.MARKDOWN)
 
@@ -457,7 +437,7 @@ def get_permission_list(current, new):
         "can_invite_users": None,
         "can_pin_messages": None,
     }
-    permissions.update(current)
+    permissions |= current
     permissions.update(new)
     return ChatPermissions(**permissions)
 
@@ -482,7 +462,9 @@ def __chat_settings__(chat_id, user_id):
 
 from .language import gs
 
+
 def get_help(chat):
     return gs(chat, "locks_help")
+
 
 __mod_name__ = "Locks"

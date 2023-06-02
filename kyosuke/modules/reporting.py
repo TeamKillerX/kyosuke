@@ -17,13 +17,14 @@ from .helper_funcs.admin_status import (
     bot_admin_check,
     AdminPerms,
     user_not_admin_check,
-    A_CACHE
+    A_CACHE,
 )
 
 REPORT_GROUP = 12
 REPORT_IMMUNE_USERS = SUDO_USERS + WHITELIST_USERS
 
-@rencmd(command='reports', run_async=True)
+
+@rencmd(command="reports", run_async=True)
 @bot_admin_check()
 @user_admin_check(AdminPerms.CAN_CHANGE_INFO, allow_mods=True)
 def report_setting(update: Update, context: CallbackContext):
@@ -52,7 +53,12 @@ def report_setting(update: Update, context: CallbackContext):
         )
 
 
-@rencmd(command='report', filters=Filters.chat_type.groups, group=REPORT_GROUP, run_async=True)
+@rencmd(
+    command="report",
+    filters=Filters.chat_type.groups,
+    group=REPORT_GROUP,
+    run_async=True,
+)
 @renmsg((Filters.regex(r"(?i)@admin(s)?")), group=REPORT_GROUP, run_async=True)
 @user_not_admin_check
 @loggable
@@ -63,10 +69,12 @@ def report(update: Update, context: CallbackContext) -> str:
     message = update.effective_message
     chat = update.effective_chat
     user = update.effective_user
-    
+
     log_setting = logsql.get_chat_setting(chat.id)
     if not log_setting:
-        logsql.set_chat_setting(logsql.LogChannelSettings(chat.id, True, True, True, True, True))
+        logsql.set_chat_setting(
+            logsql.LogChannelSettings(chat.id, True, True, True, True, True)
+        )
         log_setting = logsql.get_chat_setting(chat.id)
 
     if chat and message.reply_to_message and sql.chat_should_report(chat.id):
@@ -84,7 +92,11 @@ def report(update: Update, context: CallbackContext) -> str:
             message.reply_text("Uh? You reporting a Super user?")
             return ""
 
-        admin_list = [i.user.id for i in A_CACHE[chat.id] if not (i.user.is_bot or i.is_anonymous)]
+        admin_list = [
+            i.user.id
+            for i in A_CACHE[chat.id]
+            if not i.user.is_bot and not i.is_anonymous
+        ]
 
         if reported_user.id in admin_list:
             message.reply_text("Why are you reporting an admin?")
@@ -94,10 +106,12 @@ def report(update: Update, context: CallbackContext) -> str:
             reported = "Reported to admins."
             for admin in admin_list:
                 try:
-                    reported += f"<a href=\"tg://user?id={admin}\">\u2063</a>"
+                    reported += f'<a href="tg://user?id={admin}">\u2063</a>'
                 except BadRequest:
-                    log.exception(f"Exception while reporting user: {user} in chat: {chat.id}")
-            message.reply_text(reported, parse_mode = ParseMode.HTML)
+                    log.exception(
+                        f"Exception while reporting user: {user} in chat: {chat.id}"
+                    )
+            message.reply_text(reported, parse_mode=ParseMode.HTML)
 
         message = update.effective_message
         msg = (
@@ -129,31 +143,28 @@ def report(update: Update, context: CallbackContext) -> str:
                 InlineKeyboardButton(
                     "❌ Close Panel",
                     callback_data=f"reported_{chat.id}=close={reported_user.id}",
-                )
+                ),
             ],
             [
                 InlineKeyboardButton(
-                        "📝 Read the rules", url="t.me/{}?start={}".format(bot.username, chat.id)
-                    )
+                    "📝 Read the rules",
+                    url=f"t.me/{bot.username}?start={chat.id}",
+                )
             ],
         ]
         reply_markup2 = InlineKeyboardMarkup(keyboard2)
         reportmsg = f"{mention_html(reported_user.id, reported_user.first_name)} was reported to the admins."
         reportmsg += tmsg
         message.reply_text(
-            reportmsg,
-            parse_mode=ParseMode.HTML,
-            reply_markup=reply_markup2
+            reportmsg, parse_mode=ParseMode.HTML, reply_markup=reply_markup2
         )
-        if not log_setting.log_report:
-            return ""
-        return msg
+        return "" if not log_setting.log_report else msg
     return ""
 
 
 @rencallback(pattern=r"reported_")
 @bot_admin_check(AdminPerms.CAN_RESTRICT_MEMBERS)
-@user_admin_check(AdminPerms.CAN_RESTRICT_MEMBERS, allow_mods=True, noreply = True)
+@user_admin_check(AdminPerms.CAN_RESTRICT_MEMBERS, allow_mods=True, noreply=True)
 def buttons(update: Update, context: CallbackContext):
     bot = context.bot
     query = update.callback_query
@@ -165,19 +176,19 @@ def buttons(update: Update, context: CallbackContext):
             query.answer("✅ Succesfully kicked")
             return ""
         except Exception as err:
-            query.answer(f"🛑 Failed to kick\n{err}")           
+            query.answer(f"🛑 Failed to kick\n{err}")
     elif splitter[1] == "banned":
         try:
             bot.ban_chat_member(splitter[0], splitter[2])
             query.answer("✅  Succesfully Banned")
             return ""
-        except Exception as err:            
+        except Exception as err:
             query.answer(f"🛑 Failed to Ban\n{err}", show_alert=True)
     elif splitter[1] == "delete":
         try:
             bot.deleteMessage(splitter[0], splitter[3])
             query.answer("✅ Message Deleted")
-            
+
             kyb_no_del = [
                 [
                     InlineKeyboardButton(
@@ -197,43 +208,35 @@ def buttons(update: Update, context: CallbackContext):
                 ],
                 [
                     InlineKeyboardButton(
-                            "📝 Read the rules", url="t.me/{}?start={}".format(bot.username, splitter[0]),
-                        )
+                        "📝 Read the rules",
+                        url=f"t.me/{bot.username}?start={splitter[0]}",
+                    )
                 ],
             ]
-            
-            query.edit_message_reply_markup(
-                InlineKeyboardMarkup(kyb_no_del)
-            )
+
+            query.edit_message_reply_markup(InlineKeyboardMarkup(kyb_no_del))
             return ""
         except Exception as err:
-            query.answer(
-                text=f"🛑 Failed to delete message!\n{err}",
-                show_alert=True
-            )
-            
+            query.answer(text=f"🛑 Failed to delete message!\n{err}", show_alert=True)
+
     elif splitter[1] == "close":
         try:
             query.answer("✅ Panel Closed!")
-            
+
             kyb_no_del = [
                 [
                     InlineKeyboardButton(
-                            "📝 Read the rules", url="t.me/{}?start={}".format(bot.username, splitter[0]),
-                        )
-                ],
+                        "📝 Read the rules",
+                        url=f"t.me/{bot.username}?start={splitter[0]}",
+                    )
+                ]
             ]
-            
-            query.edit_message_reply_markup(
-                InlineKeyboardMarkup(kyb_no_del)
-            )
+
+            query.edit_message_reply_markup(InlineKeyboardMarkup(kyb_no_del))
             return ""
         except Exception as err:
-            query.answer(
-                text=f"🛑 Failed to close panel!\n{err}",
-                show_alert=True
-            )
-         
+            query.answer(text=f"🛑 Failed to close panel!\n{err}", show_alert=True)
+
 
 def __migrate__(old_chat_id, new_chat_id):
     sql.migrate_chat(old_chat_id, new_chat_id)
@@ -253,8 +256,10 @@ def __user_settings__(user_id):
 def __migrate__(old_chat_id, new_chat_id):
     sql.migrate_chat(old_chat_id, new_chat_id)
 
+
 def __chat_settings__(chat_id, _):
     return f"This chat is setup to send user reports to admins, via /report and @admin: `{sql.chat_should_report(chat_id)}`"
+
 
 def __user_settings__(user_id):
     if sql.user_should_report(user_id) is True:

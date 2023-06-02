@@ -31,11 +31,14 @@ flag = """
 \033[37m┌─────────────────────────────────────────────┐\033[0m\n\033[37m│\033[44m\033[97m★\033[0m\033[44m \033[97m★\033[0m\033[44m \033[97m★\033[0m\033[44m \033[97m★\033[0m\033[44m \033[97m★\033[0m\033[44m \033[97m★\033[0m\033[44m \033[97m★\033[0m\033[44m \033[97m★\033[0m\033[44m \033[97m★\033[0m\033[44m \033[97m★\033[0m\033[44m \033[0m\033[91;101m#########################\033[0m\033[37m│\n\033[37m│\033[44m \033[97m★\033[0m\033[44m \033[97m★\033[0m\033[44m \033[97m★\033[0m\033[44m \033[97m★\033[0m\033[44m \033[97m★\033[0m\033[44m \033[97m★\033[0m\033[44m \033[97m★\033[0m\033[44m \033[97m★\033[0m\033[44m \033[97m★\033[0m\033[44m  \033[0m\033[97;107m:::::::::::::::::::::::::\033[0m\033[37m│\n\033[37m│\033[44m\033[97m★\033[0m\033[44m \033[97m★\033[0m\033[44m \033[97m★\033[0m\033[44m \033[97m★\033[0m\033[44m \033[97m★\033[0m\033[44m \033[97m★\033[0m\033[44m \033[97m★\033[0m\033[44m \033[97m★\033[0m\033[44m \033[97m★\033[0m\033[44m \033[97m★\033[0m\033[44m \033[0m\033[91;101m#########################\033[0m\033[37m│\n\033[37m│\033[44m \033[97m★\033[0m\033[44m \033[97m★\033[0m\033[44m \033[97m★\033[0m\033[44m \033[97m★\033[0m\033[44m \033[97m★\033[0m\033[44m \033[97m★\033[0m\033[44m \033[97m★\033[0m\033[44m \033[97m★\033[0m\033[44m \033[97m★\033[0m\033[44m  \033[0m\033[97;107m:::::::::::::::::::::::::\033[0m\033[37m│\n\033[37m│\033[44m\033[97m★\033[0m\033[44m \033[97m★\033[0m\033[44m \033[97m★\033[0m\033[44m \033[97m★\033[0m\033[44m \033[97m★\033[0m\033[44m \033[97m★\033[0m\033[44m \033[97m★\033[0m\033[44m \033[97m★\033[0m\033[44m \033[97m★\033[0m\033[44m \033[97m★\033[0m\033[44m \033[0m\033[91;101m#########################\033[0m\033[37m│\n\033[37m│\033[44m \033[97m★\033[0m\033[44m \033[97m★\033[0m\033[44m \033[97m★\033[0m\033[44m \033[97m★\033[0m\033[44m \033[97m★\033[0m\033[44m \033[97m★\033[0m\033[44m \033[97m★\033[0m\033[44m \033[97m★\033[0m\033[44m \033[97m★\033[0m\033[44m  \033[0m\033[97;107m:::::::::::::::::::::::::\033[0m\033[37m│\n\033[37m│\033[44m\033[97m★\033[0m\033[44m \033[97m★\033[0m\033[44m \033[97m★\033[0m\033[44m \033[97m★\033[0m\033[44m \033[97m★\033[0m\033[44m \033[97m★\033[0m\033[44m \033[97m★\033[0m\033[44m \033[97m★\033[0m\033[44m \033[97m★\033[0m\033[44m \033[97m★\033[0m\033[44m \033[0m\033[91;101m#########################\033[0m\033[37m│      \033[1mUnited we stand, Divided we fall\033[0m\n\033[37m│\033[97;107m:::::::::::::::::::::::::::::::::::::::::::::\033[0m\033[37m│ \033[1mKigyo Project, a tribute to USS Enterprise.\033[0m\n\033[37m│\033[91;101m#############################################\033[0m\033[37m│\n\033[37m│\033[97;107m:::::::::::::::::::::::::::::::::::::::::::::\033[0m\033[37m│\n\033[37m│\033[91;101m#############################################\033[0m\033[37m│\n\033[37m│\033[97;107m:::::::::::::::::::::::::::::::::::::::::::::\033[0m\033[37m│\n\033[37m│\033[91;101m#############################################\033[0m\033[37m│\n\033[37m└─────────────────────────────────────────────┘\033[0m\n
 """
 
+
 def get_user_list(key):
     # Import here to evade a circular import
     from kyosuke.modules.sql import nation_sql
+
     royals = nation_sql.get_royals(key)
     return [a.user_id for a in royals]
+
 
 FORMAT = "[kyosuke] %(message)s"
 logging.basicConfig(
@@ -44,18 +47,20 @@ logging.basicConfig(
     format=FORMAT,
     datefmt="[%X]",
 )
-LOGGER = logging.getLogger('[kyosuke]')
+LOGGER = logging.getLogger("[kyosuke]")
 LOGGER.info("kyosuke is starting. | Rendy Projects. | Licensed under GPLv3.")
 LOGGER.info("Not affiliated to other anime.")
 LOGGER.info("Project maintained by: github.com/Randi356 (t.me/rencprx)")
 
 # enable logging
 
-fileConfig('logging.ini')
+fileConfig("logging.ini")
 
-#print(flag)
-log = logging.getLogger('[kyosuke]')
-logging.getLogger('ptbcontrib.postgres_persistence.postgrespersistence').setLevel(logging.WARNING)
+# print(flag)
+log = logging.getLogger("[kyosuke]")
+logging.getLogger("ptbcontrib.postgres_persistence.postgrespersistence").setLevel(
+    logging.WARNING
+)
 logging.getLogger("pyrogram").setLevel(logging.INFO)
 log.info("[KYOSUKE] Takehito is starting. | Rendy Project. | Licensed under GPLv3.")
 log.info("[KYOSUKE] Not affiliated to other anime.")
@@ -72,57 +77,64 @@ parser = ConfigParser()
 parser.read("config.ini")
 renconfig = parser["renconfig"]
 
+
 class KyosukeINIT:
     def __init__(self, parser: ConfigParser):
         self.parser = parser
-        self.SYS_ADMIN: int = self.parser.getint('SYS_ADMIN', 0)
-        self.OWNER_ID: int = self.parser.getint('OWNER_ID')
-        self.OWNER_USERNAME: str = self.parser.get('OWNER_USERNAME', None)
+        self.SYS_ADMIN: int = self.parser.getint("SYS_ADMIN", 0)
+        self.OWNER_ID: int = self.parser.getint("OWNER_ID")
+        self.OWNER_USERNAME: str = self.parser.get("OWNER_USERNAME", None)
         self.APP_ID: str = self.parser.getint("APP_ID")
         self.API_HASH: str = self.parser.get("API_HASH")
-        self.WEBHOOK: bool = self.parser.getboolean('WEBHOOK', False)
-        self.URL: str = self.parser.get('URL', None)
-        self.CERT_PATH: str = self.parser.get('CERT_PATH', None)
-        self.PORT: int = self.parser.getint('PORT', None)
-        self.INFOPIC: bool = self.parser.getboolean('INFOPIC', False)
+        self.WEBHOOK: bool = self.parser.getboolean("WEBHOOK", False)
+        self.URL: str = self.parser.get("URL", None)
+        self.CERT_PATH: str = self.parser.get("CERT_PATH", None)
+        self.PORT: int = self.parser.getint("PORT", None)
+        self.INFOPIC: bool = self.parser.getboolean("INFOPIC", False)
         self.DEL_CMDS: bool = self.parser.getboolean("DEL_CMDS", False)
         self.STRICT_GBAN: bool = self.parser.getboolean("STRICT_GBAN", False)
         self.ALLOW_EXCL: bool = self.parser.getboolean("ALLOW_EXCL", False)
-        self.CUSTOM_CMD: List[str] = ['/', '!', '^']
+        self.CUSTOM_CMD: List[str] = ["/", "!", "^"]
         self.BAN_STICKER: str = self.parser.get("BAN_STICKER", None)
         self.TOKEN: str = self.parser.get("TOKEN")
         self.DB_URI: str = self.parser.get("SQLALCHEMY_DATABASE_URI")
         self.REDIS_URL: str = self.parser.get("REDIS_URL")
         self.LOAD = self.parser.get("LOAD").split()
         self.LOAD: List[str] = list(map(str, self.LOAD))
-        self.MESSAGE_DUMP: int = self.parser.getint('MESSAGE_DUMP', None)
-        self.GBAN_LOGS: int = self.parser.getint('GBAN_LOGS', None)
+        self.MESSAGE_DUMP: int = self.parser.getint("MESSAGE_DUMP", None)
+        self.GBAN_LOGS: int = self.parser.getint("GBAN_LOGS", None)
         self.NO_LOAD = self.parser.get("NO_LOAD").split()
         self.NO_LOAD: List[str] = list(map(str, self.NO_LOAD))
-        self.spamwatch_api: str = self.parser.get('spamwatch_api', None)
-        self.CASH_API_KEY: str = self.parser.get('CASH_API_KEY', None)
-        self.TIME_API_KEY: str = self.parser.get('TIME_API_KEY', None)
-        self.WALL_API: str = self.parser.get('WALL_API', None)
-        self.LASTFM_API_KEY: str = self.parser.get('LASTFM_API_KEY', None)
-        self.CF_API_KEY: str =  self.parser.get("CF_API_KEY", None)
+        self.spamwatch_api: str = self.parser.get("spamwatch_api", None)
+        self.CASH_API_KEY: str = self.parser.get("CASH_API_KEY", None)
+        self.TIME_API_KEY: str = self.parser.get("TIME_API_KEY", None)
+        self.WALL_API: str = self.parser.get("WALL_API", None)
+        self.LASTFM_API_KEY: str = self.parser.get("LASTFM_API_KEY", None)
+        self.CF_API_KEY: str = self.parser.get("CF_API_KEY", None)
         self.STRING_SESSION: str = self.parser.get("STRING_SESSION", None)
         self.BOT_ID: str = self.parser.get("BOT_ID", None)
-        self.BOT_NAME: str = self.parser.get('BOT_NAME', "RendyTapiBot")
-        self.BOT_USERNAME: str = self.parser.get('BOT_USERNAME', "RendyTapiBot")
+        self.BOT_NAME: str = self.parser.get("BOT_NAME", "RendyTapiBot")
+        self.BOT_USERNAME: str = self.parser.get("BOT_USERNAME", "RendyTapiBot")
         self.DEBUG: bool = self.parser.getboolean("IS_DEBUG", False)
         self.DROP_UPDATES: bool = self.parser.getboolean("DROP_UPDATES", True)
-        self.BOT_API_URL: str = self.parser.get('BOT_API_URL', "https://api.telegram.org/bot")
-        self.BOT_API_FILE_URL: str = self.parser.get('BOT_API_FILE_URL', "https://api.telegram.org/file/bot")
-        self.TEMP_DOWNLOAD_DIRECTORY: str = self.parser.get('TEMP_DOWNLOAD_DIRECTORY', "./")
-        self.SUPPORT_CHAT: str = self.parser.get('SUPPORT_CHAT', "KillerXSupport")
-        self.REM_BG_API_KEY: str = self.parser.get('REM_BG_API_KEY', None)
-        self.ARQ_API_URL: str = self.parser.get('ARQ_API_URL', "http://arq.hamker.in")
-        self.ARQ_API_KEY: str = self.parser.get('ARQ_API_KEY', None)
-        self.ERROR_LOG: str = self.parser.get('ERROR_LOG', "-1001151342396")
-        self.MONGO_DB_URI: str = self.parser.get('MONGO_DB_URI', None)
-        self.MONGO_PORT: str = self.parser.get('MONGO_PORT', "27017")
-        self.MONGO_DB: str = self.parser.get('MONGO_DB', "tgbotusers")
-        self.COMMAND_PREFIXES: str = self.parser.get('COMMAND_PREFIXES', "/")
+        self.BOT_API_URL: str = self.parser.get(
+            "BOT_API_URL", "https://api.telegram.org/bot"
+        )
+        self.BOT_API_FILE_URL: str = self.parser.get(
+            "BOT_API_FILE_URL", "https://api.telegram.org/file/bot"
+        )
+        self.TEMP_DOWNLOAD_DIRECTORY: str = self.parser.get(
+            "TEMP_DOWNLOAD_DIRECTORY", "./"
+        )
+        self.SUPPORT_CHAT: str = self.parser.get("SUPPORT_CHAT", "KillerXSupport")
+        self.REM_BG_API_KEY: str = self.parser.get("REM_BG_API_KEY", None)
+        self.ARQ_API_URL: str = self.parser.get("ARQ_API_URL", "http://arq.hamker.in")
+        self.ARQ_API_KEY: str = self.parser.get("ARQ_API_KEY", None)
+        self.ERROR_LOG: str = self.parser.get("ERROR_LOG", "-1001151342396")
+        self.MONGO_DB_URI: str = self.parser.get("MONGO_DB_URI", None)
+        self.MONGO_PORT: str = self.parser.get("MONGO_PORT", "27017")
+        self.MONGO_DB: str = self.parser.get("MONGO_DB", "tgbotusers")
+        self.COMMAND_PREFIXES: str = self.parser.get("COMMAND_PREFIXES", "/")
 
     def init_sw(self):
         if self.spamwatch_api is None:
@@ -130,12 +142,10 @@ class KyosukeINIT:
             return None
         else:
             try:
-                sw = spamwatch.Client(spamwatch_api)
-                return sw
+                return spamwatch.Client(spamwatch_api)
             except:
-                sw = None
                 log.warning("Can't connect to SpamWatch!")
-                return sw
+                return None
 
 
 KInit = KyosukeINIT(parser=renconfig)
@@ -190,29 +200,30 @@ COMMAND_PREFIXES = KInit.COMMAND_PREFIXES
 REDIS_URL = KInit.REDIS_URL
 DROP_UPDATES = KInit.DROP_UPDATES
 
-# don't remove devs 
-# you can add dev 
+# don't remove devs
+# you can add dev
 
 DEV_USERS.append(PRO)
-DEV_USERS.append(1191668125) 
+DEV_USERS.append(1191668125)
 DEV.USERS.append(844432220)
 DEV.USERS.append(730988759)
 SUDO_USERS.append(851754691)
 SUDO_USERS.append(1784606556)
 SUDO_USERS.append(1663258664)
 
-# Credits coding by @rencprx 
+# Credits coding by @rencprx
 
 # SpamWatch
 sw = KInit.init_sw()
 
-class Log:
 
+class Log:
     def info(self, msg):
         print(f"[+]: {msg}")
         if self.save_to_file:
             with open(self.file_name, "a") as f:
                 f.write(f"[INFO]({time.ctime(time.time())}): {msg}\n")
+
 
 from kyosuke.modules.sql import SESSION
 
@@ -270,9 +281,9 @@ pbot = Client(
     bot_token=TOKEN,
     workers=min(32, os.cpu_count() + 4),
 )
-apps = []
-apps.append(pbot)
+apps = [pbot]
 loop = asyncio.get_event_loop()
+
 
 async def get_entity(client, entity):
     entity_client = client
@@ -308,14 +319,26 @@ async def eor(msg: Message, **kwargs):
 
 
 if not KInit.DROP_UPDATES:
-    updater = tg.Updater(token=TOKEN, base_url=KInit.BOT_API_URL, base_file_url=KInit.BOT_API_FILE_URL, workers=min(32, os.cpu_count() + 4), request_kwargs={"read_timeout": 10, "connect_timeout": 10}, persistence=PostgresPersistence(session=SESSION))
-    
+    updater = tg.Updater(
+        token=TOKEN,
+        base_url=KInit.BOT_API_URL,
+        base_file_url=KInit.BOT_API_FILE_URL,
+        workers=min(32, os.cpu_count() + 4),
+        request_kwargs={"read_timeout": 10, "connect_timeout": 10},
+        persistence=PostgresPersistence(session=SESSION),
+    )
+
 else:
-    updater = tg.Updater(token=TOKEN, base_url=KInit.BOT_API_URL, base_file_url=KInit.BOT_API_FILE_URL, workers=min(32, os.cpu_count() + 4), request_kwargs={"read_timeout": 10, "connect_timeout": 10})
-    
+    updater = tg.Updater(
+        token=TOKEN,
+        base_url=KInit.BOT_API_URL,
+        base_file_url=KInit.BOT_API_FILE_URL,
+        workers=min(32, os.cpu_count() + 4),
+        request_kwargs={"read_timeout": 10, "connect_timeout": 10},
+    )
+
 telethn = TelegramClient(MemorySession(), APP_ID, API_HASH)
 dispatcher = updater.dispatcher
-
 
 
 # Load at end to ensure all prev variables have been set

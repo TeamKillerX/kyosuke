@@ -3,7 +3,13 @@ from html import escape
 from typing import Optional
 
 import telegram
-from telegram import Chat, ParseMode, InlineKeyboardMarkup, Message, InlineKeyboardButton
+from telegram import (
+    Chat,
+    ParseMode,
+    InlineKeyboardMarkup,
+    Message,
+    InlineKeyboardButton,
+)
 from telegram.error import BadRequest
 from telegram.ext import (
     DispatcherHandlerStop,
@@ -47,7 +53,7 @@ ENUM_FUNC_MAP = {
 
 
 @typing_action
-@rencmd(command='filters', admin_ok=True)
+@rencmd(command="filters", admin_ok=True)
 def list_handlers(update, context):
     chat = update.effective_chat
     user = update.effective_user
@@ -69,13 +75,11 @@ def list_handlers(update, context):
     all_handlers = sql.get_chat_triggers(chat_id)
 
     if not all_handlers:
-        send_message(
-            update.effective_message, "No filters saved in {}!".format(chat_name)
-        )
+        send_message(update.effective_message, f"No filters saved in {chat_name}!")
         return
 
     for keyword in all_handlers:
-        entry = " • `{}`\n".format(escape_markdown(keyword))
+        entry = f" • `{escape_markdown(keyword)}`\n"
         if len(entry) + len(filter_list) > telegram.MAX_MESSAGE_LENGTH:
             send_message(
                 update.effective_message,
@@ -94,7 +98,9 @@ def list_handlers(update, context):
 
 
 # NOT ASYNC BECAUSE DISPATCHER HANDLER RAISED
-@rencmd(command=["filter", "addfilter"], run_async=False, filters=Filters.chat_type.groups)
+@rencmd(
+    command=["filter", "addfilter"], run_async=False, filters=Filters.chat_type.groups
+)
 @user_admin(AdminPerms.CAN_CHANGE_INFO)
 @typing_action
 def filters(update, context):  # sourcery no-metrics
@@ -211,7 +217,7 @@ def filters(update, context):  # sourcery no-metrics
     if add is True:
         send_message(
             update.effective_message,
-            "Saved filter '{}' in *{}*!".format(keyword, chat_name),
+            f"Saved filter '{keyword}' in *{chat_name}*!",
             parse_mode=telegram.ParseMode.MARKDOWN,
         )
     raise DispatcherHandlerStop
@@ -248,7 +254,7 @@ def stop_filter(update, context):
             sql.remove_filter(chat_id, args[1])
             send_message(
                 update.effective_message,
-                "Okay, I'll stop replying to that filter in *{}*.".format(chat_name),
+                f"Okay, I'll stop replying to that filter in *{chat_name}*.",
                 parse_mode=telegram.ParseMode.MARKDOWN,
             )
             raise DispatcherHandlerStop
@@ -290,10 +296,10 @@ def reply_filter(update, context):  # sourcery no-metrics
                     "mention",
                 ]
                 if filt.reply_text:
-                    valid_format = escape_invalid_curly_brackets(
-                        markdown_to_html(filt.reply_text), VALID_WELCOME_FORMATTERS
-                    )
-                    if valid_format:
+                    if valid_format := escape_invalid_curly_brackets(
+                        markdown_to_html(filt.reply_text),
+                        VALID_WELCOME_FORMATTERS,
+                    ):
                         filtext = valid_format.format(
                             first=escape(message.from_user.first_name),
                             last=escape(
@@ -308,13 +314,15 @@ def reply_filter(update, context):  # sourcery no-metrics
                                 if message.from_user.last_name
                                 else [escape(message.from_user.first_name)]
                             ),
-                            username="@" + escape(message.from_user.username)
+                            username=f"@{escape(message.from_user.username)}"
                             if message.from_user.username
                             else mention_html(
-                                message.from_user.id, message.from_user.first_name
+                                message.from_user.id,
+                                message.from_user.first_name,
                             ),
                             mention=mention_html(
-                                message.from_user.id, message.from_user.first_name
+                                message.from_user.id,
+                                message.from_user.first_name,
                             ),
                             chatname=escape(message.chat.title)
                             if message.chat.type != "private"
@@ -348,7 +356,7 @@ def reply_filter(update, context):  # sourcery no-metrics
                                     reply_markup=keyboard,
                                 )
                             except BadRequest as excp:
-                                log.exception("Error in filters: " + excp.message)
+                                log.exception(f"Error in filters: {excp.message}")
                                 send_message(
                                     update.effective_message,
                                     get_exception(excp, filt, chat),
@@ -360,9 +368,7 @@ def reply_filter(update, context):  # sourcery no-metrics
                                     get_exception(excp, filt, chat),
                                 )
                             except BadRequest as excp:
-                                log.exception(
-                                    "Failed to send message: " + excp.message
-                                )
+                                log.exception(f"Failed to send message: {excp.message}")
                 elif ENUM_FUNC_MAP[filt.file_type] == dispatcher.bot.send_sticker:
                     ENUM_FUNC_MAP[filt.file_type](
                         chat.id,
@@ -414,7 +420,7 @@ def reply_filter(update, context):  # sourcery no-metrics
                                 "again...",
                             )
                         except BadRequest as excp:
-                            log.exception("Error in filters: " + excp.message)
+                            log.exception(f"Error in filters: {excp.message}")
                     elif excp.message == "Reply message not found":
                         try:
                             context.bot.send_message(
@@ -425,7 +431,7 @@ def reply_filter(update, context):  # sourcery no-metrics
                                 reply_markup=keyboard,
                             )
                         except BadRequest as excp:
-                            log.exception("Error in filters: " + excp.message)
+                            log.exception(f"Error in filters: {excp.message}")
                     else:
                         try:
                             send_message(
@@ -433,10 +439,8 @@ def reply_filter(update, context):  # sourcery no-metrics
                                 "This message couldn't be sent as it's incorrectly formatted.",
                             )
                         except BadRequest as excp:
-                            log.exception("Error in filters: " + excp.message)
-                        log.warning(
-                            "Message %s could not be parsed", str(filt.reply)
-                        )
+                            log.exception(f"Error in filters: {excp.message}")
+                        log.warning("Message %s could not be parsed", str(filt.reply))
                         log.exception(
                             "Could not parse filter %s in chat %s",
                             str(filt.keyword),
@@ -444,11 +448,11 @@ def reply_filter(update, context):  # sourcery no-metrics
                         )
 
             else:
-                    # LEGACY - all new filters will have has_markdown set to True.
+                # LEGACY - all new filters will have has_markdown set to True.
                 try:
                     send_message(update.effective_message, filt.reply)
                 except BadRequest as excp:
-                    log.exception("Error in filters: " + excp.message)
+                    log.exception(f"Error in filters: {excp.message}")
             break
 
 
@@ -545,7 +549,7 @@ def addnew_filter(update, chat_id, keyword, text, file_type, file_id, buttons):
 
 
 def __stats__():
-    return "• {} filters, across {} chats.".format(sql.num_filters(), sql.num_chats())
+    return f"• {sql.num_filters()} filters, across {sql.num_chats()} chats."
 
 
 def __import_data__(chat_id, data):
@@ -561,11 +565,14 @@ def __migrate__(old_chat_id, new_chat_id):
 
 def __chat_settings__(chat_id, _):
     cust_filters = sql.get_chat_triggers(chat_id)
-    return "There are `{}` custom filters here.".format(len(cust_filters))
+    return f"There are `{len(cust_filters)}` custom filters here."
+
 
 from kyosuke.modules.language import gs
 
+
 def get_help(chat):
     return gs(chat, "cust_filters_help")
+
 
 __mod_name__ = "Filters"

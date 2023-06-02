@@ -15,14 +15,15 @@ client = MongoClient(MONGO_DB_URI)
 db = client["tgbotusers"]
 gbanned = db.gban
 
+
 def register(**args):
-    """ Registers a new message. """
+    """Registers a new message."""
     pattern = args.get("pattern", None)
 
     r_pattern = r"^[/!.]"
 
     if pattern is not None and not pattern.startswith("(?i)"):
-        args["pattern"] = "(?i)" + pattern
+        args["pattern"] = f"(?i){pattern}"
 
     args["pattern"] = pattern.replace("^/", r_pattern, 1)
 
@@ -34,7 +35,7 @@ def register(**args):
 
 
 def chataction(**args):
-    """ Registers chat actions. """
+    """Registers chat actions."""
 
     def decorator(func):
         telethn.add_event_handler(func, events.ChatAction(**args))
@@ -44,7 +45,7 @@ def chataction(**args):
 
 
 def userupdate(**args):
-    """ Registers user updates. """
+    """Registers user updates."""
 
     def decorator(func):
         telethn.add_event_handler(func, events.UserUpdate(**args))
@@ -54,11 +55,11 @@ def userupdate(**args):
 
 
 def inlinequery(**args):
-    """ Registers inline query. """
+    """Registers inline query."""
     pattern = args.get("pattern", None)
 
     if pattern is not None and not pattern.startswith("(?i)"):
-        args["pattern"] = "(?i)" + pattern
+        args["pattern"] = f"(?i){pattern}"
 
     def decorator(func):
         telethn.add_event_handler(func, events.InlineQuery(**args))
@@ -68,7 +69,7 @@ def inlinequery(**args):
 
 
 def callbackquery(**args):
-    """ Registers inline query. """
+    """Registers inline query."""
 
     def decorator(func):
         telethn.add_event_handler(func, events.CallbackQuery(**args))
@@ -82,7 +83,7 @@ def bot(**args):
     r_pattern = r"^[/]"
 
     if pattern is not None and not pattern.startswith("(?i)"):
-        args["pattern"] = "(?i)" + pattern
+        args["pattern"] = f"(?i){pattern}"
 
     args["pattern"] = pattern.replace("^/", r_pattern, 1)
     stack = inspect.stack()
@@ -95,7 +96,7 @@ def bot(**args):
         try:
             cmd = re.search(reg, pattern)
             try:
-                cmd = cmd.group(1).replace("$", "").replace("\\", "").replace("^", "")
+                cmd = cmd[1].replace("$", "").replace("\\", "").replace("^", "")
             except BaseException:
                 pass
 
@@ -112,18 +113,14 @@ def bot(**args):
                 return
             if check.fwd_from:
                 return
-            if check.is_group or check.is_private:
-                pass
-            else:
+            if not check.is_group and not check.is_private:
                 print("i don't work in channels")
                 return
             if check.is_group:
-               if check.chat.megagroup:
-                  pass
-               else:
-                  print("i don't work in small chats")
-                  return
-                          
+                if not check.chat.megagroup:
+                    print("i don't work in small chats")
+                    return
+
             users = gbanned.find({})
             for c in users:
                 if check.sender_id == c["user"]:
@@ -136,8 +133,6 @@ def bot(**args):
                     LOAD_PLUG.update({file_test: [func]})
             except BaseException:
                 return
-            else:
-                pass
 
         telethn.add_event_handler(wrapper, events.NewMessage(**args))
         return wrapper
@@ -149,12 +144,11 @@ def kyosuke(**args):
     pattern = args.get("pattern", None)
     disable_edited = args.get("disable_edited", False)
     ignore_unsafe = args.get("ignore_unsafe", False)
-    unsafe_pattern = r"^[^/!#@\$A-Za-z]"
     group_only = args.get("group_only", False)
     disable_errors = args.get("disable_errors", False)
     insecure = args.get("insecure", False)
     if pattern is not None and not pattern.startswith("(?i)"):
-        args["pattern"] = "(?i)" + pattern
+        args["pattern"] = f"(?i){pattern}"
 
     if "disable_edited" in args:
         del args["disable_edited"]
@@ -173,4 +167,5 @@ def kyosuke(**args):
 
     if pattern:
         if not ignore_unsafe:
+            unsafe_pattern = r"^[^/!#@\$A-Za-z]"
             args["pattern"] = args["pattern"].replace("^.", unsafe_pattern, 1)

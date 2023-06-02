@@ -10,7 +10,7 @@ from kyosuke.modules.helper_funcs.decorators import rencmd
 from kyosuke.modules.helper_funcs.extraction import extract_user
 
 
-@rencmd(command='me', pass_args=True)
+@rencmd(command="me", pass_args=True)
 def about_me(update: Update, context: CallbackContext):
     args = context.args
     bot = context.bot
@@ -18,9 +18,7 @@ def about_me(update: Update, context: CallbackContext):
     user_id = extract_user(message, args)
 
     user = bot.get_chat(user_id) if user_id else message.from_user
-    info = sql.get_user_me_info(user.id)
-
-    if info:
+    if info := sql.get_user_me_info(user.id):
         update.effective_message.reply_text(
             f"*{user.first_name}*:\n{escape_markdown(info)}",
             parse_mode=ParseMode.MARKDOWN,
@@ -36,7 +34,7 @@ def about_me(update: Update, context: CallbackContext):
         )
 
 
-@rencmd(command='setme')
+@rencmd(command="setme")
 def set_about_me(update: Update, context: CallbackContext):
     bot = context.bot
     message = update.effective_message
@@ -62,13 +60,11 @@ def set_about_me(update: Update, context: CallbackContext):
                 message.reply_text("Updated your info!")
         else:
             message.reply_text(
-                "The info needs to be under {} characters! You have {}.".format(
-                    MAX_MESSAGE_LENGTH // 4, len(info[1])
-                )
+                f"The info needs to be under {MAX_MESSAGE_LENGTH // 4} characters! You have {len(info[1])}."
             )
 
 
-@rencmd(command='bio', pass_args=True)
+@rencmd(command="bio", pass_args=True)
 def about_bio(update: Update, context: CallbackContext):
     args = context.args
     bot = context.bot
@@ -76,11 +72,9 @@ def about_bio(update: Update, context: CallbackContext):
 
     user_id = extract_user(message, args)
     user = bot.get_chat(user_id) if user_id else message.from_user
-    info = sql.get_user_bio(user.id)
-
-    if info:
+    if info := sql.get_user_bio(user.id):
         update.effective_message.reply_text(
-            "*{}*:\n{}".format(user.first_name, escape_markdown(info)),
+            f"*{user.first_name}*:\n{escape_markdown(info)}",
             parse_mode=ParseMode.MARKDOWN,
         )
     elif message.reply_to_message:
@@ -106,9 +100,9 @@ def about_bio(update: Update, context: CallbackContext):
         sender_id = update.effective_user.id
 
         if (
-                user_id == bot.id
-                and sender_id not in SUDO_USERS
-                and sender_id not in DEV_USERS
+            user_id == bot.id
+            and sender_id not in SUDO_USERS
+            and sender_id not in DEV_USERS
         ):
             message.reply_text(
                 "Erm... yeah, I only trust sudo users or developers to set my bio."
@@ -123,19 +117,17 @@ def about_bio(update: Update, context: CallbackContext):
             if len(bio[1]) < MAX_MESSAGE_LENGTH // 4:
                 sql.set_user_bio(user_id, bio[1])
                 message.reply_text(
-                    "Updated {}'s bio!".format(repl_message.from_user.first_name)
+                    f"Updated {repl_message.from_user.first_name}'s bio!"
                 )
             else:
                 message.reply_text(
-                    "A bio needs to be under {} characters! You tried to set {}.".format(
-                        MAX_MESSAGE_LENGTH // 4, len(bio[1])
-                    )
+                    f"A bio needs to be under {MAX_MESSAGE_LENGTH // 4} characters! You tried to set {len(bio[1])}."
                 )
     else:
         message.reply_text("Reply to someone's message to set their bio!")
 
 
-@rencmd(command='setbio')
+@rencmd(command="setbio")
 def set_about_bio(update: Update, context: CallbackContext):
     message = update.effective_message
     sender_id = update.effective_user.id
@@ -171,13 +163,11 @@ def set_about_bio(update: Update, context: CallbackContext):
             if len(bio[1]) < MAX_MESSAGE_LENGTH // 4:
                 sql.set_user_bio(user_id, bio[1])
                 message.reply_text(
-                    "Updated {}'s bio!".format(repl_message.from_user.first_name)
+                    f"Updated {repl_message.from_user.first_name}'s bio!"
                 )
             else:
                 message.reply_text(
-                    "Bio needs to be under {} characters! You tried to set {}.".format(
-                        MAX_MESSAGE_LENGTH // 4, len(bio[1])
-                    )
+                    f"Bio needs to be under {MAX_MESSAGE_LENGTH // 4} characters! You tried to set {len(bio[1])}."
                 )
     else:
         message.reply_text("Reply to someone to set their bio!")

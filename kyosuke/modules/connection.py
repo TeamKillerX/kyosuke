@@ -12,6 +12,7 @@ import kyosuke.modules.sql.connection_sql as sql
 from .. import dispatcher, SUDO_USERS, DEV_USERS
 from .helper_funcs import admin_status
 from .helper_funcs.alternate import send_message, typing_action
+
 user_admin_check = admin_status.user_admin_check
 AdminPerms = admin_status.AdminPerms
 
@@ -19,11 +20,10 @@ AdminPerms = admin_status.AdminPerms
 @typing_action
 @user_admin_check(AdminPerms.CAN_CHANGE_INFO)
 def allow_connections(update, context):
-
     chat = update.effective_chat
-    args = context.args
-
     if chat.type != chat.PRIVATE:
+        args = context.args
+
         if len(args) >= 1:
             var = args[0]
             if var == "no":
@@ -44,28 +44,26 @@ def allow_connections(update, context):
                     "Please enter `yes` or `no`!",
                     parse_mode=ParseMode.MARKDOWN,
                 )
+        elif get_settings := sql.allow_connect_to_chat(chat.id):
+            send_message(
+                update.effective_message,
+                "Connections to this group are *Allowed* for members!",
+                parse_mode=ParseMode.MARKDOWN,
+            )
         else:
-            get_settings = sql.allow_connect_to_chat(chat.id)
-            if get_settings:
-                send_message(
-                    update.effective_message,
-                    "Connections to this group are *Allowed* for members!",
-                    parse_mode=ParseMode.MARKDOWN,
-                )
-            else:
-                send_message(
-                    update.effective_message,
-                    "Connection to this group are *Not Allowed* for members!",
-                    parse_mode=ParseMode.MARKDOWN,
-                )
+            send_message(
+                update.effective_message,
+                "Connection to this group are *Not Allowed* for members!",
+                parse_mode=ParseMode.MARKDOWN,
+            )
     else:
         send_message(
             update.effective_message, "This command is for group only. Not in PM!"
         )
 
+
 @typing_action
 def connection_chat(update, context):
-
     chat = update.effective_chat
     user = update.effective_user
 
@@ -81,18 +79,19 @@ def connection_chat(update, context):
         chat_name = update.effective_message.chat.title
 
     if conn:
-        message = "You are currently connected to {}.\n".format(chat_name)
+        message = f"You are currently connected to {chat_name}.\n"
     else:
         message = "You are currently not connected in any group.\n"
     send_message(update.effective_message, message, parse_mode="markdown")
+
+
 @typing_action
 def connect_chat(update, context):  # sourcery no-metrics
-
     chat = update.effective_chat
     user = update.effective_user
-    args = context.args
-
     if update.effective_chat.type == "private":
+        args = context.args
+
         if args and len(args) >= 1:
             try:
                 connect_chat = int(args[0])
@@ -119,19 +118,16 @@ def connect_chat(update, context):  # sourcery no-metrics
             isallow = sql.allow_connect_to_chat(connect_chat)
 
             if (isadmin) or (isallow and ismember) or (user.id in SUDO_USERS):
-                connection_status = sql.connect(
+                if connection_status := sql.connect(
                     update.effective_message.from_user.id, connect_chat
-                )
-                if connection_status:
+                ):
                     conn_chat = dispatcher.bot.getChat(
                         connected(context.bot, update, chat, user.id, need_admin=False)
                     )
                     chat_name = conn_chat.title
                     send_message(
                         update.effective_message,
-                        "Successfully connected to *{}*. \nUse /helpconnect to check available commands.".format(
-                            chat_name
-                        ),
+                        f"Successfully connected to *{chat_name}*. \nUse /helpconnect to check available commands.",
                         parse_mode=ParseMode.MARKDOWN,
                     )
                     sql.add_history_conn(user.id, str(conn_chat.id), chat_name)
@@ -154,11 +150,10 @@ def connect_chat(update, context):  # sourcery no-metrics
                 ]
             else:
                 buttons = []
-            conn = connected(context.bot, update, chat, user.id, need_admin=False)
-            if conn:
+            if conn := connected(context.bot, update, chat, user.id, need_admin=False):
                 connectedchat = dispatcher.bot.getChat(conn)
-                text = "You are currently connected to *{}* (`{}`)".format(
-                    connectedchat.title, conn
+                text = (
+                    f"You are currently connected to *{connectedchat.title}* (`{conn}`)"
                 )
                 buttons.append(
                     InlineKeyboardButton(
@@ -175,25 +170,17 @@ def connect_chat(update, context):  # sourcery no-metrics
                 buttons = [buttons]
                 for x in sorted(gethistory.keys(), reverse=True):
                     htime = time.strftime("%d/%m/%Y", time.localtime(x))
-                    text += "╞═「 *{}* 」\n│   `{}`\n│   `{}`\n".format(
-                        gethistory[x]["chat_name"], gethistory[x]["chat_id"], htime
-                    )
+                    text += f'╞═「 *{gethistory[x]["chat_name"]}* 」\n│   `{gethistory[x]["chat_id"]}`\n│   `{htime}`\n'
                     text += "│\n"
                     buttons.append(
                         [
                             InlineKeyboardButton(
                                 text=gethistory[x]["chat_name"],
-                                callback_data="connect({})".format(
-                                    gethistory[x]["chat_id"]
-                                ),
+                                callback_data=f'connect({gethistory[x]["chat_id"]})',
                             )
                         ]
                     )
-                text += "╘══「 Total {} Chats 」".format(
-                    str(len(gethistory)) + " (max)"
-                    if len(gethistory) == 5
-                    else str(len(gethistory))
-                )
+                text += f'╘══「 Total {f"{len(gethistory)} (max)" if len(gethistory) == 5 else str(len(gethistory))} Chats 」'
                 conn_hist = InlineKeyboardMarkup(buttons)
             elif buttons:
                 conn_hist = InlineKeyboardMarkup([buttons])
@@ -214,28 +201,23 @@ def connect_chat(update, context):  # sourcery no-metrics
         ismember = getstatusadmin.status == "member"
         isallow = sql.allow_connect_to_chat(chat.id)
         if (isadmin) or (isallow and ismember) or (user.id in SUDO_USERS):
-            connection_status = sql.connect(
+            if connection_status := sql.connect(
                 update.effective_message.from_user.id, chat.id
-            )
-            if connection_status:
+            ):
                 chat_name = dispatcher.bot.getChat(chat.id).title
                 send_message(
                     update.effective_message,
-                    "Successfully connected to *{}*.".format(chat_name),
+                    f"Successfully connected to *{chat_name}*.",
                     parse_mode=ParseMode.MARKDOWN,
                 )
                 try:
                     sql.add_history_conn(user.id, str(chat.id), chat_name)
                     context.bot.send_message(
                         update.effective_message.from_user.id,
-                        "You are connected to *{}*. \nUse `/helpconnect` to check available commands.".format(
-                            chat_name
-                        ),
+                        f"You are connected to *{chat_name}*. \nUse `/helpconnect` to check available commands.",
                         parse_mode="markdown",
                     )
-                except BadRequest:
-                    pass
-                except Unauthorized:
+                except (BadRequest, Unauthorized):
                     pass
             else:
                 send_message(update.effective_message, "Connection failed!")
@@ -243,11 +225,13 @@ def connect_chat(update, context):  # sourcery no-metrics
             send_message(
                 update.effective_message, "Connection to this chat is not allowed!"
             )
-def disconnect_chat(update, context):
 
+
+def disconnect_chat(update, context):
     if update.effective_chat.type == "private":
-        disconnection_status = sql.disconnect(update.effective_message.from_user.id)
-        if disconnection_status:
+        if disconnection_status := sql.disconnect(
+            update.effective_message.from_user.id
+        ):
             sql.disconnected_chat = send_message(
                 update.effective_message, "Disconnected from chat!"
             )
@@ -261,7 +245,6 @@ def connected(bot: Bot, update: Update, chat, user_id, need_admin=True):
     user = update.effective_user
 
     if chat.type == chat.PRIVATE and sql.get_connected_chat(user_id):
-
         conn_id = sql.get_connected_chat(user_id).chat_id
         getstatusadmin = bot.get_chat_member(
             conn_id, update.effective_message.from_user.id
@@ -311,8 +294,8 @@ CONN_HELP = """
  • Export and Imports of chat backup.
  • More in future!"""
 
-def help_connect_chat(update, context):
 
+def help_connect_chat(update, context):
     args = context.args
 
     if update.effective_message.chat.type != "private":
@@ -323,7 +306,6 @@ def help_connect_chat(update, context):
 
 
 def connect_button(update, context):
-
     query = update.callback_query
     chat = update.effective_chat
     user = update.effective_user
@@ -334,24 +316,20 @@ def connect_button(update, context):
     connect_close = query.data == "connect_close"
 
     if connect_match:
-        target_chat = connect_match.group(1)
+        target_chat = connect_match[1]
         getstatusadmin = context.bot.get_chat_member(target_chat, query.from_user.id)
         isadmin = getstatusadmin.status in ("administrator", "creator")
         ismember = getstatusadmin.status == "member"
         isallow = sql.allow_connect_to_chat(target_chat)
 
         if (isadmin) or (isallow and ismember) or (user.id in SUDO_USERS):
-            connection_status = sql.connect(query.from_user.id, target_chat)
-
-            if connection_status:
+            if connection_status := sql.connect(query.from_user.id, target_chat):
                 conn_chat = dispatcher.bot.getChat(
                     connected(context.bot, update, chat, user.id, need_admin=False)
                 )
                 chat_name = conn_chat.title
                 query.message.edit_text(
-                    "Successfully connected to *{}*. \nUse `/helpconnect` to check available commands.".format(
-                        chat_name
-                    ),
+                    f"Successfully connected to *{chat_name}*. \nUse `/helpconnect` to check available commands.",
                     parse_mode=ParseMode.MARKDOWN,
                 )
                 sql.add_history_conn(user.id, str(conn_chat.id), chat_name)
@@ -362,8 +340,7 @@ def connect_button(update, context):
                 query.id, "Connection to this chat is not allowed!", show_alert=True
             )
     elif disconnect_match:
-        disconnection_status = sql.disconnect(query.from_user.id)
-        if disconnection_status:
+        if disconnection_status := sql.disconnect(query.from_user.id):
             sql.disconnected_chat = query.message.edit_text("Disconnected from chat!")
         else:
             context.bot.answer_callback_query(
@@ -379,8 +356,11 @@ def connect_button(update, context):
 
 
 from .language import gs
+
+
 def get_help(chat):
     return gs(chat, "connections_help")
+
 
 CONNECT_CHAT_HANDLER = CommandHandler("connect", connect_chat, pass_args=True)
 CONNECTION_CHAT_HANDLER = CommandHandler("connection", connection_chat, run_async=True)

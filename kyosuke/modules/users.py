@@ -133,7 +133,9 @@ def log_user(update: Update, _: CallbackContext):
                 with contextlib.suppress(AttributeError):
                     sql.update_user(entity.user.id, entity.user.username)
     if msg.sender_chat and not msg.is_automatic_forward:
-        sql.update_user(msg.sender_chat.id, msg.sender_chat.username, chat.id, chat.title)
+        sql.update_user(
+            msg.sender_chat.id, msg.sender_chat.username, chat.id, chat.title
+        )
 
     if msg.new_chat_members:
         for user in msg.new_chat_members:
@@ -152,9 +154,7 @@ def chats(update: Update, context: CallbackContext):
             curr_chat = context.bot.getChat(chat.chat_id)
             bot_member = curr_chat.get_member(context.bot.id)
             chat_members = curr_chat.get_member_count(context.bot.id)
-            chatfile += "{}. {} | {} | {}\n".format(
-                P, chat.chat_name, chat.chat_id, chat_members
-            )
+            chatfile += f"{P}. {chat.chat_name} | {chat.chat_id} | {chat_members}\n"
             P += 1
         except:
             pass

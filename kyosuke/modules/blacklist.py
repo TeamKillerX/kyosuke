@@ -1,13 +1,22 @@
 import html
 import re
-from telegram import ParseMode, Update, ChatPermissions, InlineKeyboardMarkup, InlineKeyboardButton
+from telegram import (
+    ParseMode,
+    Update,
+    ChatPermissions,
+    InlineKeyboardMarkup,
+    InlineKeyboardButton,
+)
 from telegram.error import BadRequest
 from telegram.ext import Filters, CallbackContext
 from telegram.utils.helpers import mention_html
 from kyosuke.modules.sql.approve_sql import is_approved
 import kyosuke.modules.sql.blacklist_sql as sql
 from kyosuke import log, dispatcher
-from kyosuke.modules.helper_funcs.chat_status import user_admin as u_admin, user_not_admin
+from kyosuke.modules.helper_funcs.chat_status import (
+    user_admin as u_admin,
+    user_not_admin,
+)
 from kyosuke.modules.helper_funcs.extraction import extract_text
 from kyosuke.modules.helper_funcs.misc import split_message
 from kyosuke.modules.log_channel import loggable
@@ -20,7 +29,12 @@ from ..modules.helper_funcs.anonymous import user_admin, AdminPerms
 
 BLACKLIST_GROUP = -3
 
-@rencmd(command=["blacklist", "blacklists", "blocklist", "blocklists"], pass_args=True, admin_ok=True)
+
+@rencmd(
+    command=["blacklist", "blacklists", "blocklist", "blocklists"],
+    pass_args=True,
+    admin_ok=True,
+)
 @u_admin
 @typing_action
 def blacklist(update, context):
@@ -28,8 +42,7 @@ def blacklist(update, context):
     user = update.effective_user
     args = context.args
 
-    conn = connected(context.bot, update, chat, user.id, need_admin=False)
-    if conn:
+    if conn := connected(context.bot, update, chat, user.id, need_admin=False):
         chat_id = conn
         chat_name = dispatcher.bot.getChat(conn).title
     else:
@@ -39,27 +52,28 @@ def blacklist(update, context):
         chat_name = chat.title
     chat_name = html.escape(chat_name)
 
-    filter_list = "Current blacklisted words in <b>{}</b>:\n".format(chat_name)
+    filter_list = f"Current blacklisted words in <b>{chat_name}</b>:\n"
 
     all_blacklisted = sql.get_chat_blacklist(chat_id)
 
     if len(args) > 0 and args[0].lower() == "copy":
         for trigger in all_blacklisted:
-            filter_list += "<code>{}</code>\n".format(html.escape(trigger))
+            filter_list += f"<code>{html.escape(trigger)}</code>\n"
     else:
         for trigger in all_blacklisted:
-            filter_list += " - <code>{}</code>\n".format(html.escape(trigger))    
+            filter_list += f" - <code>{html.escape(trigger)}</code>\n"
 
     split_text = split_message(filter_list)
     for text in split_text:
-        if filter_list == "Current blacklisted words in <b>{}</b>:\n".format(chat_name):
+        if filter_list == f"Current blacklisted words in <b>{chat_name}</b>:\n":
             send_message(
                 update.effective_message,
-                "No blacklisted words in <b>{}</b>!".format(chat_name),
+                f"No blacklisted words in <b>{chat_name}</b>!",
                 parse_mode=ParseMode.HTML,
             )
             return
         send_message(update.effective_message, text, parse_mode=ParseMode.HTML)
+
 
 @rencmd(command=["addblacklist", "addblocklist"], pass_args=True)
 @user_admin(AdminPerms.CAN_DELETE_MESSAGES)
@@ -70,8 +84,7 @@ def add_blacklist(update, context):
     user = update.effective_user
     words = msg.text.split(None, 1)
 
-    conn = connected(context.bot, update, chat, user.id)
-    if conn:
+    if conn := connected(context.bot, update, chat, user.id):
         chat_id = conn
         chat_name = dispatcher.bot.getChat(conn).title
     else:
@@ -85,11 +98,7 @@ def add_blacklist(update, context):
     if len(words) > 1:
         text = words[1]
         to_blacklist = list(
-            {
-                trigger.strip()
-                for trigger in text.split("\n")
-                if trigger.strip()
-            }
+            {trigger.strip() for trigger in text.split("\n") if trigger.strip()}
         )
 
         for trigger in to_blacklist:
@@ -98,18 +107,14 @@ def add_blacklist(update, context):
         if len(to_blacklist) == 1:
             send_message(
                 update.effective_message,
-                "Added blacklist <code>{}</code> in chat: <b>{}</b>!".format(
-                    html.escape(to_blacklist[0]), chat_name
-                ),
+                f"Added blacklist <code>{html.escape(to_blacklist[0])}</code> in chat: <b>{chat_name}</b>!",
                 parse_mode=ParseMode.HTML,
             )
 
         else:
             send_message(
                 update.effective_message,
-                "Added blacklist trigger: <code>{}</code> in <b>{}</b>!".format(
-                    len(to_blacklist), chat_name
-                ),
+                f"Added blacklist trigger: <code>{len(to_blacklist)}</code> in <b>{chat_name}</b>!",
                 parse_mode=ParseMode.HTML,
             )
 
@@ -118,6 +123,7 @@ def add_blacklist(update, context):
             update.effective_message,
             "Tell me which words you would like to add in blacklist.",
         )
+
 
 @rencmd(command=["unblacklist", "unblocklist", "rmblacklist"], pass_args=True)
 @user_admin(AdminPerms.CAN_DELETE_MESSAGES)
@@ -128,8 +134,7 @@ def unblacklist(update, context):
     user = update.effective_user
     words = msg.text.split(None, 1)
 
-    conn = connected(context.bot, update, chat, user.id)
-    if conn:
+    if conn := connected(context.bot, update, chat, user.id):
         chat_id = conn
         chat_name = dispatcher.bot.getChat(conn).title
     else:
@@ -143,11 +148,7 @@ def unblacklist(update, context):
     if len(words) > 1:
         text = words[1]
         to_unblacklist = list(
-            {
-                trigger.strip()
-                for trigger in text.split("\n")
-                if trigger.strip()
-            }
+            {trigger.strip() for trigger in text.split("\n") if trigger.strip()}
         )
 
         successful = 0
@@ -160,9 +161,7 @@ def unblacklist(update, context):
             if successful:
                 send_message(
                     update.effective_message,
-                    "Removed <code>{}</code> from blacklist in <b>{}</b>!".format(
-                        html.escape(to_unblacklist[0]), chat_name
-                    ),
+                    f"Removed <code>{html.escape(to_unblacklist[0])}</code> from blacklist in <b>{chat_name}</b>!",
                     parse_mode=ParseMode.HTML,
                 )
             else:
@@ -173,9 +172,7 @@ def unblacklist(update, context):
         elif successful == len(to_unblacklist):
             send_message(
                 update.effective_message,
-                "Removed <code>{}</code> from blacklist in <b>{}</b>!".format(
-                    successful, chat_name
-                ),
+                f"Removed <code>{successful}</code> from blacklist in <b>{chat_name}</b>!",
                 parse_mode=ParseMode.HTML,
             )
 
@@ -191,10 +188,7 @@ def unblacklist(update, context):
         else:
             send_message(
                 update.effective_message,
-                "Removed <code>{}</code> from blacklist. {} did not exist, "
-                "so were not removed.".format(
-                    successful, len(to_unblacklist) - successful
-                ),
+                f"Removed <code>{successful}</code> from blacklist. {len(to_unblacklist) - successful} did not exist, so were not removed.",
                 parse_mode=ParseMode.HTML,
             )
     else:
@@ -202,6 +196,7 @@ def unblacklist(update, context):
             update.effective_message,
             "Tell me which words you would like to remove from blacklist!",
         )
+
 
 @rencmd(command=["blacklistmode", "blocklistmode"], pass_args=True)
 @loggable
@@ -262,7 +257,7 @@ Examples of time value: 4m = 4 minutes, 3h = 3 hours, 6d = 6 days, 5w = 5 weeks.
 Example of time value: 4m = 4 minutes, 3h = 3 hours, 6d = 6 days, 5w = 5 weeks."""
                 send_message(update.effective_message, teks, parse_mode="markdown")
                 return ""
-            settypeblacklist = "temporarily ban for {}".format(args[1])
+            settypeblacklist = f"temporarily ban for {args[1]}"
             sql.set_blacklist_strength(chat_id, 6, str(args[1]))
         elif args[0].lower() == "tmute":
             if len(args) == 1:
@@ -277,7 +272,7 @@ Examples of time value: 4m = 4 minutes, 3h = 3 hours, 6d = 6 days, 5w = 5 weeks.
 Examples of time value: 4m = 4 minutes, 3h = 3 hours, 6d = 6 days, 5w = 5 weeks."""
                 send_message(update.effective_message, teks, parse_mode="markdown")
                 return ""
-            settypeblacklist = "temporarily mute for {}".format(args[1])
+            settypeblacklist = f"temporarily mute for {args[1]}"
             sql.set_blacklist_strength(chat_id, 7, str(args[1]))
         else:
             send_message(
@@ -286,21 +281,11 @@ Examples of time value: 4m = 4 minutes, 3h = 3 hours, 6d = 6 days, 5w = 5 weeks.
             )
             return ""
         if conn:
-            text = "Changed blacklist mode: `{}` in *{}*!".format(
-                settypeblacklist, chat_name
-            )
+            text = f"Changed blacklist mode: `{settypeblacklist}` in *{chat_name}*!"
         else:
-            text = "Changed blacklist mode: `{}`!".format(settypeblacklist)
+            text = f"Changed blacklist mode: `{settypeblacklist}`!"
         send_message(update.effective_message, text, parse_mode="markdown")
-        return (
-            "<b>{}:</b>\n"
-            "<b>Admin:</b> {}\n"
-            "Changed the blacklist mode. will {}.".format(
-                html.escape(chat.title),
-                mention_html(user.id, user.first_name),
-                settypeblacklist,
-            )
-        )
+        return f"<b>{html.escape(chat.title)}:</b>\n<b>Admin:</b> {mention_html(user.id, user.first_name)}\nChanged the blacklist mode. will {settypeblacklist}."
     else:
         getmode, getvalue = sql.get_blacklist_setting(chat.id)
         if getmode == 0:
@@ -316,15 +301,13 @@ Examples of time value: 4m = 4 minutes, 3h = 3 hours, 6d = 6 days, 5w = 5 weeks.
         elif getmode == 5:
             settypeblacklist = "ban"
         elif getmode == 6:
-            settypeblacklist = "temporarily ban for {}".format(getvalue)
+            settypeblacklist = f"temporarily ban for {getvalue}"
         elif getmode == 7:
-            settypeblacklist = "temporarily mute for {}".format(getvalue)
+            settypeblacklist = f"temporarily mute for {getvalue}"
         if conn:
-            text = "Current blacklistmode: *{}* in *{}*.".format(
-                settypeblacklist, chat_name
-            )
+            text = f"Current blacklistmode: *{settypeblacklist}* in *{chat_name}*."
         else:
-            text = "Current blacklistmode: *{}*.".format(settypeblacklist)
+            text = f"Current blacklistmode: *{settypeblacklist}*."
         send_message(update.effective_message, text, parse_mode=ParseMode.MARKDOWN)
     return ""
 
@@ -336,8 +319,13 @@ def findall(p, s):
         i = s.find(p, i + 1)
 
 
-
-@renmsg(((Filters.text | Filters.command | Filters.sticker | Filters.photo) & Filters.chat_type.groups), group=BLACKLIST_GROUP)
+@renmsg(
+    (
+        (Filters.text | Filters.command | Filters.sticker | Filters.photo)
+        & Filters.chat_type.groups
+    ),
+    group=BLACKLIST_GROUP,
+)
 @user_not_admin
 def del_blacklist(update, context):  # sourcery no-metrics
     chat = update.effective_chat
@@ -365,7 +353,7 @@ def del_blacklist(update, context):  # sourcery no-metrics
                     warn(
                         update.effective_user,
                         update,
-                        ("Using blacklisted trigger: {}".format(trigger)),
+                        f"Using blacklisted trigger: {trigger}",
                         message,
                         update.effective_user,
                     )
@@ -384,8 +372,7 @@ def del_blacklist(update, context):  # sourcery no-metrics
                     return
                 elif getmode == 4:
                     message.delete()
-                    res = chat.unban_member(update.effective_user.id)
-                    if res:
+                    if res := chat.unban_member(update.effective_user.id):
                         bot.sendMessage(
                             chat.id,
                             f"Kicked {user.first_name} for using Blacklisted word: {trigger}!",
@@ -441,13 +428,12 @@ def __migrate__(old_chat_id, new_chat_id):
 
 def __chat_settings__(chat_id, user_id):
     blacklisted = sql.num_blacklist_chat_filters(chat_id)
-    return "There are {} blacklisted words.".format(blacklisted)
+    return f"There are {blacklisted} blacklisted words."
 
 
 def __stats__():
-    return "• {} blacklist triggers, across {} chats.".format(
-        sql.num_blacklist_filters(), sql.num_blacklist_filter_chats()
-    )
+    return f"• {sql.num_blacklist_filters()} blacklist triggers, across {sql.num_blacklist_filter_chats()} chats."
+
 
 def kontol_blacklist_help(update: Update, context: CallbackContext):
     update.effective_message.reply_text(
@@ -455,11 +441,13 @@ def kontol_blacklist_help(update: Update, context: CallbackContext):
         parse_mode=ParseMode.HTML,
     )
 
+
 def kontol_tikelblk_help(update: Update, context: CallbackContext):
     update.effective_message.reply_text(
         gs(update.effective_chat.id, "tikelblk_help"),
         parse_mode=ParseMode.HTML,
     )
+
 
 @rencallback(pattern=r"kontol_help_")
 def kontol_help(update: Update, context: CallbackContext):
@@ -474,24 +462,35 @@ def kontol_help(update: Update, context: CallbackContext):
         text=help_text,
         parse_mode=ParseMode.HTML,
         reply_markup=InlineKeyboardMarkup(
-            [[InlineKeyboardButton(text="🔙", callback_data=f"help_module({__mod_name__.lower()})"),
-            InlineKeyboardButton(text='Report Error', url='https://t.me/pantekyks')]]
+            [
+                [
+                    InlineKeyboardButton(
+                        text="🔙", callback_data=f"help_module({__mod_name__.lower()})"
+                    ),
+                    InlineKeyboardButton(
+                        text="Report Error", url="https://t.me/pantekyks"
+                    ),
+                ]
+            ]
         ),
     )
     bot.answer_callback_query(query.id)
-
 
 
 __mod_name__ = "Blacklists"
 
 from kyosuke.modules.language import gs
 
+
 def get_help(chat):
-    return [gs(chat, "blak_help"),
-    [
-        InlineKeyboardButton(text="Sticker Blacklist", callback_data="kontol_help_tikelblk"
-        ),
-        InlineKeyboardButton(text="Blacklist", callback_data="kontol_help_blacklist"
-        )
+    return [
+        gs(chat, "blak_help"),
+        [
+            InlineKeyboardButton(
+                text="Sticker Blacklist", callback_data="kontol_help_tikelblk"
+            ),
+            InlineKeyboardButton(
+                text="Blacklist", callback_data="kontol_help_blacklist"
+            ),
+        ],
     ]
-]

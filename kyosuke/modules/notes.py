@@ -73,7 +73,9 @@ def get(update, context, notename, show_none=True, no_format=False):
             if JOIN_LOGGER:
                 try:
                     bot.forward_message(
-                        chat_id=chat_id, from_chat_id=JOIN_LOGGER, message_id=note.value,
+                        chat_id=chat_id,
+                        from_chat_id=JOIN_LOGGER,
+                        message_id=note.value,
                     )
                 except BadRequest as excp:
                     if excp.message != "Message to forward not found":
@@ -86,7 +88,9 @@ def get(update, context, notename, show_none=True, no_format=False):
             else:
                 try:
                     bot.forward_message(
-                        chat_id=chat_id, from_chat_id=chat_id, message_id=note.value,
+                        chat_id=chat_id,
+                        from_chat_id=chat_id,
+                        message_id=note.value,
                     )
                 except BadRequest as excp:
                     if excp.message != "Message to forward not found":
@@ -108,10 +112,10 @@ def get(update, context, notename, show_none=True, no_format=False):
                 "chatname",
                 "mention",
             ]
-            valid_format = escape_invalid_curly_brackets(
-                note.value, VALID_NOTE_FORMATTERS,
-            )
-            if valid_format:
+            if valid_format := escape_invalid_curly_brackets(
+                note.value,
+                VALID_NOTE_FORMATTERS,
+            ):
                 if not no_format and "%%%" in valid_format:
                     split = valid_format.split("%%%")
                     text = random.choice(split) if all(split) else valid_format
@@ -124,18 +128,23 @@ def get(update, context, notename, show_none=True, no_format=False):
                     ),
                     fullname=escape_markdown(
                         " ".join(
-                            [message.from_user.first_name, message.from_user.last_name]
+                            [
+                                message.from_user.first_name,
+                                message.from_user.last_name,
+                            ]
                             if message.from_user.last_name
                             else [message.from_user.first_name],
                         ),
                     ),
-                    username="@" + message.from_user.username
+                    username=f"@{message.from_user.username}"
                     if message.from_user.username
                     else mention_markdown(
-                        message.from_user.id, message.from_user.first_name,
+                        message.from_user.id,
+                        message.from_user.first_name,
                     ),
                     mention=mention_markdown(
-                        message.from_user.id, message.from_user.first_name,
+                        message.from_user.id,
+                        message.from_user.first_name,
                     ),
                     chatname=escape_markdown(
                         message.chat.title
@@ -200,11 +209,12 @@ def get(update, context, notename, show_none=True, no_format=False):
                     sql.rm_note(chat_id, notename)
                 else:
                     message.reply_text(
-                        "This note could not be sent, as it is incorrectly formatted. Ask in "
-                        f"@YorkTownEagleUnion if you can't figure out why!"
+                        "This note could not be sent, as it is incorrectly formatted. Ask in @YorkTownEagleUnion if you can't figure out why!"
                     )
                     log.exception(
-                        "Could not parse message #%s in chat %s", notename, str(note_chat_id)
+                        "Could not parse message #%s in chat %s",
+                        notename,
+                        str(note_chat_id),
                     )
                     log.warning("Message was: %s", str(note.value))
         return
@@ -225,7 +235,6 @@ def cmd_get(update: Update, context: CallbackContext):
         update.effective_message.reply_text("Get rekt")
 
 
-
 @renmsg((Filters.regex(r"^#[^\s]+")), group=-14)
 @typing_action
 @connection_status
@@ -234,7 +243,6 @@ def hash_get(update: Update, context: CallbackContext):
     fst_word = message.split()[0]
     no_hash = fst_word[1:].lower()
     get(update, context, no_hash, show_none=False)
-
 
 
 @renmsg((Filters.regex(r"^/\d+$")), group=-16)
@@ -252,6 +260,7 @@ def slash_get(update: Update, context: CallbackContext):
     except IndexError:
         update.effective_message.reply_text("Wrong Note ID 😾")
 
+
 @rencmd(command="save", pass_args=True)
 @typing_action
 @user_admin(AdminPerms.CAN_CHANGE_INFO)
@@ -259,7 +268,7 @@ def slash_get(update: Update, context: CallbackContext):
 def save(update: Update, context: CallbackContext):
     chat_id = update.effective_chat.id
     msg = update.effective_message  # type: Optional[Message]
-    m = msg.text.split(' ', 1)
+    m = msg.text.split(" ", 1)
     if len(m) == 1:
         msg.reply_text("Provide something to save.")
         return
@@ -295,16 +304,17 @@ def save(update: Update, context: CallbackContext):
             )
         return
 
+
 @rencmd(command="clear", pass_args=True)
 @typing_action
 @user_admin(AdminPerms.CAN_CHANGE_INFO)
 @connection_status
 def clear(update: Update, context: CallbackContext):
     args = context.args
-    chat_id = update.effective_chat.id
     if len(args) >= 1:
         notename = args[0].lower()
 
+        chat_id = update.effective_chat.id
         if sql.rm_note(chat_id, notename):
             update.effective_message.reply_text("Successfully removed note.")
         else:
@@ -412,12 +422,10 @@ def __import_data__(chat_id, data):  # sourcery no-metrics
 
         if match:
             failures.append(notename)
-            notedata = notedata[match.end() :].strip()
-            if notedata:
+            if notedata := notedata[match.end() :].strip():
                 sql.add_note_to_db(chat_id, notename[1:], notedata, sql.Types.TEXT)
         elif matchsticker:
-            content = notedata[matchsticker.end() :].strip()
-            if content:
+            if content := notedata[matchsticker.end() :].strip():
                 sql.add_note_to_db(
                     chat_id, notename[1:], notedata, sql.Types.STICKER, file=content
                 )
@@ -425,8 +433,7 @@ def __import_data__(chat_id, data):  # sourcery no-metrics
             parse = notedata[matchbtn.end() :].strip()
             notedata = parse.split("<###button###>")[0]
             buttons = parse.split("<###button###>")[1]
-            buttons = ast.literal_eval(buttons)
-            if buttons:
+            if buttons := ast.literal_eval(buttons):
                 sql.add_note_to_db(
                     chat_id,
                     notename[1:],
@@ -438,8 +445,7 @@ def __import_data__(chat_id, data):  # sourcery no-metrics
             file = notedata[matchfile.end() :].strip()
             file = file.split("<###TYPESPLIT###>")
             notedata = file[1]
-            content = file[0]
-            if content:
+            if content := file[0]:
                 sql.add_note_to_db(
                     chat_id, notename[1:], notedata, sql.Types.DOCUMENT, file=content
                 )
@@ -447,8 +453,7 @@ def __import_data__(chat_id, data):  # sourcery no-metrics
             photo = notedata[matchphoto.end() :].strip()
             photo = photo.split("<###TYPESPLIT###>")
             notedata = photo[1]
-            content = photo[0]
-            if content:
+            if content := photo[0]:
                 sql.add_note_to_db(
                     chat_id, notename[1:], notedata, sql.Types.PHOTO, file=content
                 )
@@ -456,8 +461,7 @@ def __import_data__(chat_id, data):  # sourcery no-metrics
             audio = notedata[matchaudio.end() :].strip()
             audio = audio.split("<###TYPESPLIT###>")
             notedata = audio[1]
-            content = audio[0]
-            if content:
+            if content := audio[0]:
                 sql.add_note_to_db(
                     chat_id, notename[1:], notedata, sql.Types.AUDIO, file=content
                 )
@@ -465,8 +469,7 @@ def __import_data__(chat_id, data):  # sourcery no-metrics
             voice = notedata[matchvoice.end() :].strip()
             voice = voice.split("<###TYPESPLIT###>")
             notedata = voice[1]
-            content = voice[0]
-            if content:
+            if content := voice[0]:
                 sql.add_note_to_db(
                     chat_id, notename[1:], notedata, sql.Types.VOICE, file=content
                 )
@@ -474,8 +477,7 @@ def __import_data__(chat_id, data):  # sourcery no-metrics
             video = notedata[matchvideo.end() :].strip()
             video = video.split("<###TYPESPLIT###>")
             notedata = video[1]
-            content = video[0]
-            if content:
+            if content := video[0]:
                 sql.add_note_to_db(
                     chat_id, notename[1:], notedata, sql.Types.VIDEO, file=content
                 )
@@ -483,8 +485,7 @@ def __import_data__(chat_id, data):  # sourcery no-metrics
             video_note = notedata[matchvn.end() :].strip()
             video_note = video_note.split("<###TYPESPLIT###>")
             notedata = video_note[1]
-            content = video_note[0]
-            if content:
+            if content := video_note[0]:
                 sql.add_note_to_db(
                     chat_id, notename[1:], notedata, sql.Types.VIDEO_NOTE, file=content
                 )
@@ -516,7 +517,9 @@ def __chat_settings__(chat_id, user_id):
     notes = sql.get_all_chat_notes(chat_id)
     return f"There are `{len(notes)}` notes in this chat."
 
+
 from kyosuke.modules.language import gs
+
 
 def get_help(chat):
     return gs(chat, "notes_help")

@@ -19,7 +19,7 @@ from telegram.ext import CallbackContext
 from kyosuke.modules.helper_funcs.decorators import rencmd
 
 
-@rencmd(command='load')
+@rencmd(command="load")
 @dev_plus
 def load(update: Update, context: CallbackContext):
     message = update.effective_message
@@ -29,7 +29,7 @@ def load(update: Update, context: CallbackContext):
     )
 
     try:
-        imported_module = importlib.import_module("tg_bot.modules." + text)
+        imported_module = importlib.import_module(f"tg_bot.modules.{text}")
     except:
         load_messasge.edit_text("Does that module even exist?")
         return
@@ -81,10 +81,12 @@ def load(update: Update, context: CallbackContext):
         USER_SETTINGS[imported_module.__mod_name__.lower()] = imported_module
 
     load_messasge.edit_text(
-        "Successfully loaded module : <b>{}</b>".format(text), parse_mode=ParseMode.HTML
+        f"Successfully loaded module : <b>{text}</b>",
+        parse_mode=ParseMode.HTML,
     )
 
-@rencmd(command='unload')
+
+@rencmd(command="unload")
 @dev_plus
 def unload(update: Update, context: CallbackContext):
     message = update.effective_message
@@ -94,7 +96,7 @@ def unload(update: Update, context: CallbackContext):
     )
 
     try:
-        imported_module = importlib.import_module("tg_bot.modules." + text)
+        imported_module = importlib.import_module(f"tg_bot.modules.{text}")
     except:
         unload_messasge.edit_text("Does that module even exist?")
         return
@@ -151,7 +153,7 @@ def unload(update: Update, context: CallbackContext):
     )
 
 
-@rencmd(command='listmodules')
+@rencmd(command="listmodules")
 @sudo_plus
 def listmodules(update: Update, context: CallbackContext):
     message = update.effective_message

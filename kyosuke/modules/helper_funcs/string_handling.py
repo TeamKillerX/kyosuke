@@ -26,7 +26,7 @@ MATCH_MD = re.compile(
 
 MATCH_MD_v2 = re.compile(
     r"(?<!\\)(\[.*?\])(\(.*?\))|"
-    r"(?P<esc>[\_\-~`>#=!\|\*\[\]\(\)\+\{\}\.\\])" # https://core.telegram.org/bots/api#markdownv2-style
+    r"(?P<esc>[\_\-~`>#=!\|\*\[\]\(\)\+\{\}\.\\])"  # https://core.telegram.org/bots/api#markdownv2-style
 )
 
 # regex to find []() links -> hyperlinks/buttons
@@ -95,69 +95,73 @@ def markdown_parser_v2(
         start = ent.offset + offset  # start of entity
         end = ent.offset + offset + ent.length - 1  # end of entity
 
-        # we only care about code, url, text links
-        if ent.type in ("code", "url", "text_link", "bold", "italic", "underline", "strikethrough", "spoiler"):
-            # count emoji to switch counter
-            count = _calc_emoji_offset(txt[:start])
-            start -= count
-            end -= count
+        if ent.type not in (
+            "code",
+            "url",
+            "text_link",
+            "bold",
+            "italic",
+            "underline",
+            "strikethrough",
+            "spoiler",
+        ):
+            continue
 
-            if ent.type == "url":
-                for match in LINK_REGEX_v2.finditer(txt):
-                    if match.start(2) <= start and end <= match.end(2) and not match.group(2).startswith("buttonurl"):
-                        print(match.group(2))
-                        mt = match.group(1).center(count)
-                        res += _selective_escape_v2(txt[prev:start - (len(mt) + 3)] + '[{}]({})'.format(_selective_escape_v2(match.group(1)), match.group(2)))
-                        print(res)
-                        end +=1
-                        break
+        # count emoji to switch counter
+        count = _calc_emoji_offset(txt[:start])
+        start -= count
+        end -= count
+
+        if ent.type == "url":
+            for match in LINK_REGEX_v2.finditer(txt):
+                if (
+                    match.start(2) <= start
+                    and end <= match.end(2)
+                    and not match.group(2).startswith("buttonurl")
+                ):
+                    print(match.group(2))
+                    mt = match.group(1).center(count)
+                    res += _selective_escape_v2(
+                        f"{txt[prev:start - (len(mt) + 3)]}[{_selective_escape_v2(match.group(1))}]({match.group(2)})"
+                    )
+                    print(res)
+                    end += 1
+                    break
+                continue
+            else:
+                if txt[start - 10 : start] or txt[start - 12 : start] in [
+                    "buttonurl:",
+                    "buttonurl://",
+                ]:
                     continue
                 else:
-                    if txt[start - 10:start] or txt[start - 12:start] in ['buttonurl:', 'buttonurl://']:
-                        continue
-                    else:
-                        if txt[start - 10:start] or txt[start - 12:start] in ['buttonurl:', 'buttonurl://']:
-                            continue
-                        # TODO: investigate possible offset bug when lots of emoji are present
-                        res += _selective_escape_v2(txt[prev:start] or "") + escape_markdown(
-                            ent_text, version=2
-                        )
+                    # TODO: investigate possible offset bug when lots of emoji are present
+                    res += _selective_escape_v2(
+                        txt[prev:start] or ""
+                    ) + escape_markdown(ent_text, version=2)
 
-            # code handling
-            elif ent.type == "code":
-                res += _selective_escape_v2(txt[prev:start]) + "`" + ent_text + "`"
+        elif ent.type == "code":
+            res += f"{_selective_escape_v2(txt[prev:start])}`{ent_text}`"
 
-            # bold handling
-            elif ent.type == "bold":
-                res += _selective_escape_v2(txt[prev:start]) + "*" + ent_text + "*"
+        elif ent.type == "bold":
+            res += f"{_selective_escape_v2(txt[prev:start])}*{ent_text}*"
 
-            # italic handling
-            elif ent.type == "italic":
-                res += _selective_escape_v2(txt[prev:start]) + "_" + ent_text + "_"
+        elif ent.type == "italic":
+            res += f"{_selective_escape_v2(txt[prev:start])}_{ent_text}_"
 
-            # underline handling
-            elif ent.type == "underline":
-                res += _selective_escape_v2(txt[prev:start]) + "__" + ent_text + "__"
+        elif ent.type == "underline":
+            res += f"{_selective_escape_v2(txt[prev:start])}__{ent_text}__"
 
-            # strikethrough handling
-            elif ent.type == "strikethrough":
-                res += _selective_escape_v2(txt[prev:start]) + "~" + ent_text + "~"
+        elif ent.type == "strikethrough":
+            res += f"{_selective_escape_v2(txt[prev:start])}~{ent_text}~"
 
-            # spoiler handling
-            elif ent.type == "spoiler":
-                res += _selective_escape_v2(txt[prev:start]) + "||" + ent_text + "||"
+        elif ent.type == "spoiler":
+            res += f"{_selective_escape_v2(txt[prev:start])}||{ent_text}||"
 
-            # handle markdown/html links
-            elif ent.type == "text_link":
-                res += _selective_escape_v2(txt[prev:start]) + "[{}]({})".format(
-                    _selective_escape_v2(ent_text), ent.url
-                    )
+        elif ent.type == "text_link":
+            res += f"{_selective_escape_v2(txt[prev:start])}[{_selective_escape_v2(ent_text)}]({ent.url})"
 
-            end += 1
-
-        # anything else
-        else:
-            continue
+        end += 1
 
         prev = end
 
@@ -194,8 +198,13 @@ def button_markdown_parser_v2(
 
     return note_data, buttons
 
+
 def reply_button_parser_v2(
-    txt: str, entities: Dict[MessageEntity, str] = None, offset: int = 0, replymarkup: InlineKeyboardMarkup = None) -> (str, List):
+    txt: str,
+    entities: Dict[MessageEntity, str] = None,
+    offset: int = 0,
+    replymarkup: InlineKeyboardMarkup = None,
+) -> (str, List):
     markdown_note = markdown_parser_v2(txt, entities, offset)
     buttons = []
     prev = 0
@@ -228,6 +237,7 @@ def reply_button_parser_v2(
     note_data += markdown_note[prev:]
     return note_data, buttons
 
+
 def _selective_escape(to_parse: str) -> str:
     """
     Escape all invalid markdown
@@ -243,6 +253,7 @@ def _selective_escape(to_parse: str) -> str:
             )
             offset += 1
     return to_parse
+
 
 def markdown_parser(
     txt: str, entities: Dict[MessageEntity, str] = None, offset: int = 0
@@ -273,47 +284,41 @@ def markdown_parser(
         start = ent.offset + offset  # start of entity
         end = ent.offset + offset + ent.length - 1  # end of entity
 
-        # we only care about code, url, text links
-        if ent.type in ("code", "url", "text_link"):
-            # count emoji to switch counter
-            count = _calc_emoji_offset(txt[:start])
-            start -= count
-            end -= count
+        if ent.type not in ("code", "url", "text_link"):
+            continue
 
-            # URL handling -> do not escape if in [](), escape otherwise.
-            if ent.type == "url":
-                if any(
-                    match.start(1) <= start and end <= match.end(1)
-                    for match in LINK_REGEX.finditer(txt)
-                ):
-                    continue
-                # else, check the escapes between the prev and last and forcefully escape the url to avoid mangling
-                else:
-                    # TODO: investigate possible offset bug when lots of emoji are present
-                    res += _selective_escape(txt[prev:start] or "") + escape_markdown(
-                        ent_text
-                    )
+        # count emoji to switch counter
+        count = _calc_emoji_offset(txt[:start])
+        start -= count
+        end -= count
 
-            # code handling
-            elif ent.type == "code":
-                res += _selective_escape(txt[prev:start]) + "`" + ent_text + "`"
-
-            # handle markdown/html links
-            elif ent.type == "text_link":
-                res += _selective_escape(txt[prev:start]) + "[{}]({})".format(
-                    ent_text, ent.url
+        # URL handling -> do not escape if in [](), escape otherwise.
+        if ent.type == "url":
+            if any(
+                match.start(1) <= start and end <= match.end(1)
+                for match in LINK_REGEX.finditer(txt)
+            ):
+                continue
+            # else, check the escapes between the prev and last and forcefully escape the url to avoid mangling
+            else:
+                # TODO: investigate possible offset bug when lots of emoji are present
+                res += _selective_escape(txt[prev:start] or "") + escape_markdown(
+                    ent_text
                 )
 
-            end += 1
+        elif ent.type == "code":
+            res += f"{_selective_escape(txt[prev:start])}`{ent_text}`"
 
-        # anything else
-        else:
-            continue
+        elif ent.type == "text_link":
+            res += f"{_selective_escape(txt[prev:start])}[{ent_text}]({ent.url})"
+
+        end += 1
 
         prev = end
 
     res += _selective_escape(txt[prev:])  # add the rest of the text
     return res
+
 
 def button_markdown_parser(
     txt: str, entities: Dict[MessageEntity, str] = None, offset: int = 0
@@ -344,6 +349,7 @@ def button_markdown_parser(
         note_data += markdown_note[prev:]
 
     return note_data, buttons
+
 
 def escape_invalid_curly_brackets(text: str, valids: List[str]) -> str:
     new_text = ""
@@ -388,35 +394,33 @@ START_CHAR = ("'", '"', SMART_OPEN)
 
 
 def split_quotes(text: str) -> List:
-    if any(text.startswith(char) for char in START_CHAR):
-        counter = 1  # ignore first char -> is some kind of quote
-        while counter < len(text):
-            if text[counter] == "\\":
-                counter += 1
-            elif text[counter] == text[0] or (
-                text[0] == SMART_OPEN and text[counter] == SMART_CLOSE
-            ):
-                break
+    if not any(text.startswith(char) for char in START_CHAR):
+        return text.split(None, 1)
+    counter = 1  # ignore first char -> is some kind of quote
+    while counter < len(text):
+        if text[counter] == "\\":
             counter += 1
-        else:
-            return text.split(None, 1)
-
-        # 1 to avoid starting quote, and counter is exclusive so avoids ending
-        key = remove_escapes(text[1:counter].strip())
-        # index will be in range, or `else` would have been executed and returned
-        rest = text[counter + 1 :].strip()
-        if not key:
-            key = text[0] + text[0]
-        return list(filter(None, [key, rest]))
+        elif text[counter] == text[0] or (
+            text[0] == SMART_OPEN and text[counter] == SMART_CLOSE
+        ):
+            break
+        counter += 1
     else:
         return text.split(None, 1)
 
+    # 1 to avoid starting quote, and counter is exclusive so avoids ending
+    key = remove_escapes(text[1:counter].strip())
+    # index will be in range, or `else` would have been executed and returned
+    rest = text[counter + 1 :].strip()
+    if not key:
+        key = text[0] + text[0]
+    return list(filter(None, [key, rest]))
+
 
 def remove_escapes(text: str) -> str:
-    counter = 0
     res = ""
     is_escaped = False
-    while counter < len(text):
+    for counter in range(len(text)):
         if is_escaped:
             res += text[counter]
             is_escaped = False
@@ -424,7 +428,6 @@ def remove_escapes(text: str) -> str:
             is_escaped = True
         else:
             res += text[counter]
-        counter += 1
     return res
 
 
@@ -446,21 +449,19 @@ def extract_time(message, time_val):
             message.reply_text("Invalid time amount specified.")
             return ""
 
-        if unit == "m":
-            bantime = int(time.time() + int(time_num) * 60)
+        if unit == "d":
+            bantime = int(time.time() + int(time_num) * 24 * 60 * 60)
         elif unit == "h":
             bantime = int(time.time() + int(time_num) * 60 * 60)
-        elif unit == "d":
-            bantime = int(time.time() + int(time_num) * 24 * 60 * 60)
+        elif unit == "m":
+            bantime = int(time.time() + int(time_num) * 60)
         else:
             # how even...?
             return ""
         return bantime
     else:
         message.reply_text(
-            "Invalid time type specified. Expected m,h, or d, got: {}".format(
-                time_val[-1]
-            )
+            f"Invalid time type specified. Expected m,h, or d, got: {time_val[-1]}"
         )
         return ""
 
